@@ -1,0 +1,26 @@
+package_name: quantum_ai_poc_master_spec
+version: 0.1.0
+language: fi
+status: draft-ready-for-build
+source_of_truth_files:
+- README.md
+- 08_state/current_state.yaml
+- 01_architecture/decisions_locked.md
+- 00_scope/non_goals.md
+- 04_solvers/solver_plugin_contract.md
+- 05_ui/ui_master_spec.md
+v1_solvers:
+- mc_option_pricing
+- credit_risk_mc
+- insurance_loss_mc
+- qiskit_option_pricing_demo
+poc_stack:
+  frontend: Firebase Hosting + React/Next.js
+  auth: Firebase Auth
+  backend_api: Google Cloud Run
+  job_queue: Google Cloud Tasks
+  database: Supabase Postgres
+  object_storage: Supabase Storage
+  ai_primary: Gemini (Google ecosystem)
+  computation_language: Python
+  quantum_simulation: Qiskit + Aer

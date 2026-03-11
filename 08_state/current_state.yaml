@@ -1,0 +1,40 @@
+project:
+  name: Quantum + AI POC
+  status: spec-defined
+  phase: documentation-ready
+core_goal: Build a transparent AI-guided analytics web app where all computation runs
+  through Python, with both classical solvers and Qiskit/Aer quantum simulation solvers.
+locked_choices:
+  frontend: Firebase Hosting
+  auth: Firebase Auth
+  backend: Cloud Run (Python)
+  queue: Cloud Tasks
+  database: Supabase Postgres
+  storage: Supabase Storage
+  ai_primary: Gemini
+  computation_model: Python-only execution for all solvers
+  quantum_mode_v1: Qiskit + Aer local simulation only
+v1_solvers:
+- mc_option_pricing
+- credit_risk_mc
+- insurance_loss_mc
+- qiskit_option_pricing_demo
+critical_guardrails:
+- No free-form Python/Qiskit generation in production path
+- No execution without valid solver-specific schema
+- No direct client writes to solver domain data
+- No use-case-specific result screens as primary UI strategy
+- Quantum UI must show actual Qiskit artifacts
+next_best_steps:
+- Create initial repo skeleton and folder structure
+- Design UI shell from 05_ui/ui_master_spec.md
+- Implement solver plugin contract for first two solvers
+- Implement data intake/profile/mapping flow
+- Implement execution monitor and results shell
+success_probability_assessment:
+  technical_demo: 85
+  usable_poc: 70
+  polished_first_version: 45
+future_path:
+  qpu_possible_later: true
+  condition: Keep backend abstraction between simulator and future QPU runtime
