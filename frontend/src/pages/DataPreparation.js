@@ -32,6 +32,7 @@ function DataPreparation() {
       <h2>Data Preparation</h2>
       <Card>
         <DataToolbar onUpload={handleUpload} onSolverSelect={handleSolverSelect} />
+        {selectedSolver && <p>Selected Solver: {selectedSolver}</p>}
         <DataTable data={data} />
       </Card>
     </div>
