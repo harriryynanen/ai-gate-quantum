@@ -2,49 +2,53 @@ import React, { useState } from 'react';
 import JobListItem from '../components/job/JobListItem';
 import Card from '../components/common/Card';
 
-const mockJobs = [
-  { id: '1', name: 'Old Simulation 1', status: 'succeeded', createdAt: '2023-01-15T10:00:00Z' },
-  { id: '2', name: 'Old Simulation 2', status: 'failed', createdAt: '2023-01-16T12:00:00Z' },
-  { id: '3', name: 'Recent Test', status: 'succeeded', createdAt: '2023-10-27T14:00:00Z' },
-  { id: '4', name: 'Another Recent Job', status: 'succeeded', createdAt: '2023-10-28T16:00:00Z' },
+const mockHistory = [
+  { id: 'session-abc-123', name: 'Q3 Financial Risk Analysis', status: 'Completed', timestamp: new Date(Date.now() - 86400000).toISOString() },
+  { id: 'session-def-456', name: 'Equity Option Pricing Model', status: 'Running', timestamp: new Date().toISOString() },
+  { id: 'session-ghi-789', name: 'Supply Chain Cost Optimization', status: 'Failed', timestamp: new Date(Date.now() - 172800000).toISOString() },
+  { id: 'session-jkl-012', name: 'Inventory Replenishment Simulation', status: 'Completed', timestamp: new Date(Date.now() - 259200000).toISOString() },
+  { id: 'session-mno-345', name: 'Customer Churn Prediction', status: 'Completed', timestamp: new Date(Date.now() - 345600000).toISOString() },
 ];
 
 function JobHistory() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const filteredJobs = mockJobs
+  const filteredHistory = mockHistory
     .filter(job => job.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    .filter(job => statusFilter === 'all' || job.status === statusFilter);
+    .filter(job => statusFilter === 'all' || job.status.toLowerCase() === statusFilter);
 
   return (
     <div>
-      <h2>Job History</h2>
+      <h1 className="text-3xl font-bold mb-6">Session History</h1>
       <Card>
-        <div style={{ display: 'flex', marginBottom: '20px' }}>
+        <div className="flex flex-col md:flex-row gap-4 mb-4">
           <input
             type="text"
-            placeholder="Search jobs..."
+            placeholder="Search sessions by name..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            style={{ flexGrow: 1, marginRight: '10px', padding: '8px' }}
+            className="flex-grow p-2 border rounded-lg"
           />
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            style={{ padding: '8px' }}
+            className="p-2 border rounded-lg bg-white"
           >
             <option value="all">All Statuses</option>
-            <option value="succeeded">Succeeded</option>
-            <option value="failed">Failed</option>
+            <option value="completed">Completed</option>
             <option value="running">Running</option>
-            <option value="pending">Pending</option>
+            <option value="failed">Failed</option>
           </select>
         </div>
-        <div>
-          {filteredJobs.map(job => (
-            <JobListItem key={job.id} job={job} />
-          ))}
+        <div className="space-y-4">
+          {filteredHistory.length > 0 ? (
+            filteredHistory.map(job => (
+              <JobListItem key={job.id} job={job} />
+            ))
+          ) : (
+            <p className="text-center text-gray-500 py-8">No sessions found.</p>
+          )}
         </div>
       </Card>
     </div>

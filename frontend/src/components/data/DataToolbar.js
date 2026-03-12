@@ -1,29 +1,21 @@
 import React from 'react';
 
-const DataToolbar = ({ onUpload, onSolverSelect }) => {
-  const handleFileChange = (e) => {
-    // Mock uploading data
-    const mockUploadedData = {
-      columns: ['New Feature 1', 'New Feature 2', 'New Target'],
-      rows: [
-        [10, 20, 1],
-        [30, 40, 0],
-      ],
-    };
-    onUpload(mockUploadedData);
+const DataToolbar = ({ onUpload }) => {
+
+  const handleFileChange = (event) => {
+    // This is a mock implementation. 
+    // In a real app, we would parse the file and pass the data to onUpload.
+    console.log('File selected:', event.target.files[0]);
+    alert('File upload is not implemented yet.');
   };
 
   return (
-    <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between' }}>
+    <div className="flex justify-between items-center mb-4">
       <div>
-        <input type="file" onChange={handleFileChange} style={{ marginRight: '10px' }} />
-      </div>
-      <div>
-        <select onChange={(e) => onSolverSelect(e.target.value)} style={{ padding: '8px' }}>
-          <option value="">Select Solver</option>
-          <option value="qiskit-vqe">Qiskit VQE</option>
-          <option value="dwave-annealer">DWave Annealer</option>
-        </select>
+        <label htmlFor="file-upload" className="cursor-pointer bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-600">
+          Upload CSV
+        </label>
+        <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} accept=".csv" />
       </div>
     </div>
   );

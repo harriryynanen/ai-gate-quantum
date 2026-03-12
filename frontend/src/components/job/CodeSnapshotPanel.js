@@ -1,6 +1,4 @@
 import React from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import Card from '../common/Card';
 
 function CodeSnapshotPanel({ code, language = 'python' }) {
@@ -12,10 +10,12 @@ function CodeSnapshotPanel({ code, language = 'python' }) {
       <p className="text-sm text-gray-500 mb-3">
         This is a snapshot of the solver logic that will be executed in a secure Python environment.
       </p>
-      <div className="bg-gray-900 rounded-md overflow-hidden text-sm">
-        <SyntaxHighlighter language={language} style={atomDark} showLineNumbers>
-          {code}
-        </SyntaxHighlighter>
+      <div className="bg-gray-900 rounded-md overflow-hidden text-sm p-4">
+        <pre className="text-white whitespace-pre-wrap">
+          <code>
+            {code}
+          </code>
+        </pre>
       </div>
     </Card>
   );

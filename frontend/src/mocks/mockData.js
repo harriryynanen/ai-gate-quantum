@@ -1,3 +1,35 @@
+export const mockSession = {
+  id: 'session-xyz-123',
+  status: 'Active',
+  createdAt: '2024-07-31T10:00:00Z',
+};
+
+export const mockExecution = {
+  timeline: [
+    { id: 1, name: 'Session Created', status: 'Completed', time: '10:01:00 AM' },
+    { id: 2, name: 'Data Profiled', status: 'Completed', time: '10:01:05 AM' },
+    { id: 3, name: 'Solver Selected', status: 'Completed', time: '10:01:15 AM' },
+    { id: 4, name: 'Mapping Approved', status: 'Completed', time: '10:01:40 AM' },
+    { id: 5, name: 'Python Job Prepared', status: 'Running', time: '10:01:42 AM' },
+    { id: 6, name: 'Executing...', status: 'Pending', time: null },
+    { id: 7, name: 'Results Generated', status: 'Pending', time: null },
+  ],
+  logs: [
+    { time: '10:01:42.100', stage: 4, message: 'Preparing Python execution environment.' },
+    { time: '10:01:42.500', stage: 4, message: 'Serializing dataset and parameters.' },
+    { time: '10:01:43.000', stage: 5, message: 'Starting job execution via Cloud Run proxy.' },
+    { time: '10:01:44.200', stage: 5, message: '[Solver] Initializing Qiskit Aer backend for simulation.' },
+    { time: '10:01:44.800', stage: 5, message: '[Solver] Pricing European call option with 1024 shots.' },
+    { time: '10:01:45.600', stage: 5, message: '[Solver] Executing quantum simulation via Qiskit Runtime...' },
+  ],
+  quantumDetails: {
+    backend: 'local_simulation',
+    framework: 'Qiskit + Aer',
+    shots: 1024,
+    seed: 42,
+    transpilation: 'Level 3 (default)',
+  },
+};
 
 export const mockDataset = {
   id: 'dataset-001',
@@ -22,7 +54,6 @@ export const mockDataPreview = [
   { ScenarioID: 'SC-002', Date: '2024-07-01', Revenue: '1,500,000', Expenses: 950000, Growth_Rate: '5.8%', Region: 'Europe' },
   { ScenarioID: 'SC-003', Date: '2024-07-01', Revenue: '950,000', Expenses: 600000, Growth_Rate: '4.9%', Region: 'Asia' },
 ];
-
 
 export const mockQualityCheck = {
   status: 'IssuesFound',
@@ -78,21 +109,20 @@ export const mockMapping = {
 };
 
 export const mockTransformations = [
-    { sourceField: 'Revenue', targetField: 'revenue', transform: 'string_to_number', details: 'Removed commas' },
-    { sourceField: 'Growth_Rate', targetField: 'growthRate', transform: 'percent_to_decimal', details: 'Converted "5.5%" to 0.055' },
-    { sourceField: 'Date', targetField: 'period', transform: 'string_to_date', details: 'Formatted as YYYY-MM-DD' },
+  { sourceField: 'Revenue', targetField: 'revenue', transform: 'string_to_number', details: 'Removed commas' },
+  { sourceField: 'Growth_Rate', targetField: 'growthRate', transform: 'percent_to_decimal', details: 'Converted "5.5%" to 0.055' },
+  { sourceField: 'Date', targetField: 'period', transform: 'string_to_date', details: 'Formatted as YYYY-MM-DD' },
 ];
 
 export const mockValidation = {
-    'solver-001': {
-        status: 'Pending', // or 'Success', 'Error'
-        fieldStatus: {
-            'revenue': { status: 'Success', message: 'Mapped and transformed.' },
-            'expenses': { status: 'Success', message: 'Mapped directly.' },
-            'growthRate': { status: 'Success', message: 'Mapped and transformed.' },
-            'period': { status: 'Success', message: 'Mapped and transformed.' },
-        },
-        overallMessage: 'All required fields are mapped and validated. Ready for approval.'
-    }
+  'solver-001': {
+    status: 'Pending', // or 'Success', 'Error'
+    fieldStatus: {
+      'revenue': { status: 'Success', message: 'Mapped and transformed.' },
+      'expenses': { status: 'Success', message: 'Mapped directly.' },
+      'growthRate': { status: 'Success', message: 'Mapped and transformed.' },
+      'period': { status: 'Success', message: 'Mapped and transformed.' },
+    },
+    overallMessage: 'All required fields are mapped and validated. Ready for approval.'
+  }
 };
-
