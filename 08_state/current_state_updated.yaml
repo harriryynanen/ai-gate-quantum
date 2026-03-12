@@ -1,0 +1,82 @@
+project:
+  name: QuantumFlow
+  status: active-prototype
+  phase: firebase-backend-stabilization
+
+core_goal: >-
+  Build a quantum-first, AI-guided workflow web app where the user is guided from
+  problem definition to data preparation, method recommendation, execution, and
+  result review with transparent comparison between quantum-oriented and classical
+  paths.
+
+current_reality:
+  frontend_runtime: React app with working preview and existing workflow UI shell
+  backend_direction: Firebase-native path under active development
+  persistence: Firestore initialized and partially wired
+  functions_status: >-
+    Firebase Functions code path exists but deployment is currently blocked by a
+    combination of mixed v1/v2 handler patterns and project plan constraints
+    for Cloud Functions deployment
+  ai_status: >-
+    Gemini/Genkit attempt was rolled back conceptually; recommendation logic should
+    remain deterministic server-side until the Firebase Functions base is stable
+
+locked_choices:
+  frontend: Firebase Hosting / Firebase Studio workflow
+  auth: Firebase Auth ready, but full auth UX is not yet a priority
+  database: Firestore
+  backend: Firebase Functions v2 (target), Node 20
+  ai_primary_future: Gemini, but only after stable backend deployment
+  recommendation_v1: deterministic server-side recommendation contract
+  computation_model_v1: no local Python or local venv required for normal development
+  quantum_positioning: quantum-first product identity, classical as comparison/fallback
+  dev_default: mock-friendly frontend plus Firebase-backed persistence where stable
+
+explicit_non_choices_for_now:
+  - No Supabase in the active implementation path
+  - No App Script in the active implementation path
+  - No local Python backend as required dev workflow
+  - No Genkit/AI SDK reintegration before Functions deployment is stable
+  - No real Qiskit or heavy compute path in the current Firebase stabilization phase
+
+workflow_stages:
+  - Define Goal
+  - Prepare Data
+  - Select Method
+  - Configure Job
+  - Execute
+  - Review Results
+
+critical_guardrails:
+  - The product must remain quantum-first, not a generic AI dashboard
+  - AI must explain recommendations, tradeoffs, blockers, and assumptions
+  - Recommendation logic must be willing to prefer classical when justified
+  - Users should not have to pick solvers directly in the main path
+  - No black-box execution narrative in UI
+  - Do not let AI tooling invent new architecture without explicit approval
+
+known_blockers:
+  - Mixed Firebase Functions syntax paths have created repeated build/deploy failures
+  - Spark plan blocks full Cloud Functions deployment path; Blaze is required for deploy
+  - Repository documentation is partly inconsistent with the active Firebase direction
+
+next_best_steps:
+  - Upgrade project to Blaze if real Cloud Functions deployment is required now
+  - Remove all broken Genkit code and dependencies completely
+  - Lock Functions implementation to one clean v2-only pattern with request.data and request.auth
+  - Stabilize deterministic recommendation generation on the server
+  - Verify session, recommendation, execution, and results lifecycle end-to-end
+  - Reintroduce Gemini only after the backend deploy path is stable
+
+success_probability_assessment:
+  ui_shell: 85
+  backend_stabilization: 65
+  firebase_functions_deploy_after_cleanup: 70
+  near_term_live_poc: 60
+  polished_first_version: 40
+
+future_path:
+  gemini_reintroduction_possible: true
+  condition: stable Functions deployment and deterministic recommendation flow first
+  heavier_compute_possible_later: true
+  condition_compute: move to a separate managed compute path only after recommendation/backend contract is stable
