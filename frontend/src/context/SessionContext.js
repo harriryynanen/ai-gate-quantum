@@ -1,51 +1,55 @@
 
-import React, { createContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import { api } from '../services/api';
 
-const SessionContext = createContext(null);
+export const SessionContext = createContext();
 
-const SessionProvider = ({ children }) => {
+export const SessionProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // Function to create a new session
-  const createSession = useCallback(async (goal) => {
-    try {
-      setLoading(true);
-      const newSession = await api.createSession({ goal });
-      setSession(newSession);
-      setError(null);
-      return newSession;
-    } catch (err) {
-      setError('Failed to create session');
-      console.error(err);
-    }
-    finally {
-        setLoading(false);
-    }
-  }, []);
-
-  // On initial load, create a default session for demonstration
   useEffect(() => {
-    if (!session) {
-      createSession('Default financial risk analysis session');
-    }
-  }, [createSession, session]);
+    // On initial load, try to create a new session.
+    const initializeSession = async () => {
+      try {
+        // In a real app, you might check localStorage for an existing session ID.
+        const newSession = await api.createSession({ goal: "Initial exploratory session" });
+        setSession(newSession);
+      } catch (error) {
+        console.error("Failed to initialize session:", error);
+        // Handle error state appropriately in a real app
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const value = {
-    session,
-    setSession, // Allow components to update session state
-    createSession,
-    loading,
-    error
+    if (!session) {
+        initializeSession();
+    }
+
+  }, [session]);
+
+  const value = { 
+    session, 
+    setSession, 
+    loading, 
+    // Function to update job status within the session
+    updateJobStatus: (job) => {
+        if (session) {
+            setSession({ ...session, job });
+        }
+    },
+    // Function to attach results to the session
+    setJobResults: (results) => {
+        if (session && session.job) {
+            setSession({ ...session, job: { ...session.job, results }});
+        }
+    }
   };
 
   return (
     <SessionContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </SessionContext.Provider>
   );
 };
-
-export { SessionContext, SessionProvider };
