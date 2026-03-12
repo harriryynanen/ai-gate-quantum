@@ -5,7 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Chat from './pages/Chat';
 import DataPreparation from './pages/DataPreparation';
 import JobConfiguration from './pages/JobConfiguration';
-import ExecutionMonitor from './pages/ExecutionMonitor';
+import Execution from './pages/Execution';
 import Results from './pages/Results';
 import History from './pages/History';
 import { SessionProvider } from './context/SessionContext';
@@ -22,9 +22,9 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/chat" element={<Chat />} />
-              <Route path="/data-prep" element={<DataPreparation />} />
-              <Route path="/job-config" element={<JobConfiguration />} />
-              <Route path="/execution" element={<ExecutionMonitor />} />
+              <Route path="/data-preparation" element={<DataPreparation />} />
+              <Route path="/job-configuration" element={<JobConfiguration />} />
+              <Route path="/execution" element={<Execution />} />
               <Route path="/results/:sessionId" element={<Results />} />
               <Route path="/history" element={<History />} />
             </Routes>

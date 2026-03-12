@@ -1,15 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { getSessions, createSession } from '../services/firebaseService';
+import React, { useState, useEffect, useContext } from 'react';
+import { Link } from 'react-router-dom';
+import { getSessions } from '../services/firebaseService';
+import { SessionContext } from '../context/SessionContext';
 
 function Dashboard() {
   const [goal, setGoal] = useState('');
   const [recentSessions, setRecentSessions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
+  
+  // Use the session context for starting new sessions
+  const { startNewSession, loading: sessionLoading } = useContext(SessionContext);
 
   useEffect(() => {
     setLoading(true);
@@ -27,21 +29,19 @@ function Dashboard() {
 
   const handleStartSession = async (e) => {
     e.preventDefault();
-    if (!goal.trim() || isCreating) return;
+    if (!goal.trim() || sessionLoading) return;
 
-    setIsCreating(true);
     setError(null);
 
     try {
-      const newSessionId = await createSession(goal);
-      navigate(`/data-preparation?session=${newSessionId}`);
+      // The context now handles API call, state update, and navigation
+      await startNewSession(goal);
     } catch (err) {
       console.error("Failed to create session: ", err);
       setError('Failed to start a new session. Please try again.');
-      setIsCreating(false);
     }
   };
-
+  
   const getStatusColor = (status) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
@@ -71,14 +71,14 @@ function Dashboard() {
                             onChange={(e) => setGoal(e.target.value)}
                             placeholder="E.g., 'Optimize my logistics network for faster delivery times'"
                             className="flex-grow p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
-                            disabled={isCreating}
+                            disabled={sessionLoading}
                         />
                         <button 
                             type="submit" 
                             className="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition transform hover:scale-105 disabled:bg-gray-400 disabled:scale-100"
-                            disabled={!goal.trim() || isCreating}
+                            disabled={!goal.trim() || sessionLoading}
                         >
-                            {isCreating ? 'Starting...' : 'Start Session'}
+                            {sessionLoading ? 'Starting...' : 'Start Session'}
                         </button>
                     </div>
                 </form>

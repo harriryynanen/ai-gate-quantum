@@ -60,6 +60,8 @@ export const SessionProvider = ({ children }) => {
         navigate(`/data-preparation?session=${newSession.id}`);
     } catch (error) {
         console.error("Error starting new session:", error);
+        // Re-throw the error to be caught by the calling component
+        throw error;
     } finally {
         setLoading(false);
     }

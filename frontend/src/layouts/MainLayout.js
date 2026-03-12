@@ -18,8 +18,8 @@ const MainLayout = ({ children }) => {
           <li><Link to="/">Dashboard</Link></li>
           <li><Link to="/chat">AI Chat</Link></li>
           {/* Corrected link paths */}
-          <li><Link to="/data-prep">Data Preparation</Link></li>
-          <li><Link to="/job-config">Job Configuration</Link></li>
+          <li><Link to="/data-preparation">Data Preparation</Link></li>
+          <li><Link to="/job-configuration">Job Configuration</Link></li>
           <li><Link to="/execution">Execution</Link></li>
           <li><Link to={`/results/${mockSessionId}`}>Results</Link></li>
           <li><Link to="/history">History</Link></li>

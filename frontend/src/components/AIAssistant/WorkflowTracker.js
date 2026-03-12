@@ -3,9 +3,9 @@ import { useLocation, Link } from 'react-router-dom';
 
 const stages = [
   { name: 'Define Goal', path: '/chat' },
-  { name: 'Prepare Data', path: '/data-prep' },
-  { name: 'Select Method', path: '/job-config' }, // Combined Select & Configure for simplicity
-  { name: 'Configure Job', path: '/job-config' },
+  { name: 'Prepare Data', path: '/data-preparation' },
+  { name: 'Select Method', path: '/job-configuration' }, // Combined Select & Configure for simplicity
+  { name: 'Configure Job', path: '/job-configuration' },
   { name: 'Execute', path: '/execution' },
   { name: 'Review Results', path: '/results' },
 ];
@@ -14,8 +14,8 @@ const stages = [
 const getStageIndex = (pathname) => {
   if (pathname.startsWith('/results')) return 5;
   if (pathname.startsWith('/execution')) return 4;
-  if (pathname.startsWith('/job-config')) return 3;
-  if (pathname.startsWith('/data-prep')) return 2;
+  if (pathname.startsWith('/job-configuration')) return 3;
+  if (pathname.startsWith('/data-preparation')) return 2;
   if (pathname.startsWith('/chat')) return 1;
   return 0; // Dashboard or other
 }

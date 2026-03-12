@@ -16,14 +16,14 @@ const stageGuidance = {
   chat: {
     title: "Define Your Goal",
     why: "A clear goal helps me select the best tools for your analysis. Tell me what you want to achieve.",
-    nextStep: { title: "Prepare Your Data", description: "Once the goal is set, the next step is to upload and validate your data.", link: "/data-prep" },
+    nextStep: { title: "Prepare Your Data", description: "Once the goal is set, the next step is to upload and validate your data.", link: "/data-preparation" },
   },
-  'data-prep': {
+  'data-preparation': {
     title: "Data Preparation",
     why: "Correctly formatted data is essential for a successful analysis. Here, we ensure your data matches the requirements of the potential solvers.",
-    nextStep: { title: "Select a Method", description: "Based on your data and goals, I will now recommend the best analysis method.", link: "/job-config" },
+    nextStep: { title: "Select a Method", description: "Based on your data and goals, I will now recommend the best analysis method.", link: "/job-configuration" },
   },
-  'job-config': {
+  'job-configuration': {
     title: "Configure Your Job",
     why: "This is the final approval step. Review my recommended method and an alternative, then lock it in to start the execution.",
     nextStep: { title: "Execute Job", description: "Launch the solver and monitor its progress in real-time.", link: "/execution" },
@@ -49,8 +49,8 @@ const stageGuidance = {
 const getPageKey = (pathname) => {
   if (pathname.startsWith('/results')) return 'results';
   if (pathname.startsWith('/execution')) return 'execution';
-  if (pathname.startsWith('/job-config')) return 'job-config';
-  if (pathname.startsWith('/data-prep')) return 'data-prep';
+  if (pathname.startsWith('/job-configuration')) return 'job-configuration';
+  if (pathname.startsWith('/data-preparation')) return 'data-preparation';
   if (pathname.startsWith('/chat')) return 'chat';
   return 'dashboard';
 }

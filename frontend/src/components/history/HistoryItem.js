@@ -27,7 +27,7 @@ const HistoryItem = ({ item }) => {
             {item.status === 'Completed' && (
                 <>
                     <Link to={`/results/${item.id}`} className="text-blue-600 font-semibold">Open Results</Link>
-                    <Link to={`/job-config`} className="text-blue-600 font-semibold">Re-run with Changes</Link>
+                    <Link to={`/job-configuration`} className="text-blue-600 font-semibold">Re-run with Changes</Link>
                 </>
             )}
             {item.status === 'In Progress' && (
