@@ -1,10 +1,11 @@
 import React, { createContext, useState } from 'react';
-import { mockSession } from '../mocks/mockData';
+import { mockExecution } from '../mocks/mockData'; // Corrected import
 
 const SessionContext = createContext();
 
 const SessionProvider = ({ children }) => {
-  const [session, setSession] = useState(mockSession);
+  // Initialize state with the correctly imported data
+  const [session, setSession] = useState(mockExecution);
 
   const updateSession = (updates) => {
     setSession(prevSession => ({ ...prevSession, ...updates }));
