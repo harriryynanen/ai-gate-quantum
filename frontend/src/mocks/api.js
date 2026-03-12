@@ -18,7 +18,13 @@ export const mockApi = {
       title: 'New Session',
       goal: req.goal,
       createdAt: new Date().toISOString(),
-      dataset: null,
+      // Add a default dataset for immediate UX
+      dataset: {
+        id: 'data-default',
+        name: 'Default Risk Data.csv',
+        columns: [{ name: 'TransactionID', type: 'string' }, { name: 'Amount', type: 'number' }, { name: 'RiskScore', type: 'number' }],
+        rowCount: 1000,
+      },
       job: null,
     };
     MOCK_SESSIONS[id] = newSession;
@@ -40,18 +46,23 @@ export const mockApi = {
   },
 
   getRecommendation: async (req) => {
+    // Enhanced recommendation payload
     return {
+      confidence: 0.92,
+      justification: 'The problem structure (high-dimensional, combinatorial) is an excellent match for quantum-inspired annealing algorithms, which can explore vast solution spaces more effectively than classical solvers.',
       recommendedMethod: {
         id: 'quantum_inspired_annealing',
         name: 'Quantum-Inspired Annealing',
         type: 'quantum_simulation',
+        advantages: ['Superior performance on complex problems', 'Finds non-obvious solutions', 'Handles uncertainty well'],
+        exploratory: false,
       },
       alternateMethod: {
         id: 'classical_optimization',
-        name: 'Classical Optimization',
+        name: 'Classical Optimization (Monte Carlo)',
         type: 'classical',
+        reasoning: 'A robust and well-understood classical method. It is faster for smaller datasets but may miss optimal solutions in highly complex scenarios. Recommended for baseline comparisons.',
       },
-      reasoning: 'The problem structure is suitable for quantum-inspired methods, which can explore a larger solution space.',
     };
   },
 
@@ -73,7 +84,6 @@ export const mockApi = {
   },
 
   getJobStatus: async (jobId) => {
-    // Simulate progress
     const job = MOCK_JOBS[jobId];
     if (!job) return {
       status: 'failed',
@@ -83,7 +93,7 @@ export const mockApi = {
 
     return {
       status: job.status,
-      ...mockExecution, // Re-use timeline and logs from old mock
+      ...mockExecution,
     };
   },
 
@@ -92,17 +102,16 @@ export const mockApi = {
     if (!job) return null;
 
     if (job.status !== 'complete') {
-      // Simulate job completion
       job.status = 'complete';
       job.results = {
         id: `res-${job.id}`,
-        summary: 'The model suggests a portfolio heavily weighted towards tech and healthcare.',
+        summary: 'The quantum-inspired model identified a portfolio allocation that significantly reduces downside risk while capturing 95% of the potential upside, outperforming the classical baseline.',
         rawOutput: {
           optimal_weights: {
-            AAPL: 0.4,
-            MSFT: 0.6
+            'Quantum-Fund-A': 0.65,
+            'Stable-Growth-B': 0.35
           },
-          sharpe_ratio: 2.1
+          sharpe_ratio: 2.8
         },
       };
     }
