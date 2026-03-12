@@ -19,15 +19,17 @@ module.exports = {
   },
   ignorePatterns: [
     "/lib/**/*", // Ignore built files.
-    "/generated/**/*", // Ignore generated files.
   ],
   plugins: [
     "@typescript-eslint",
     "import",
   ],
   rules: {
-    "quotes": ["error", "double"],
     "import/no-unresolved": 0,
+    "quotes": ["error", "double"],
     "indent": ["error", 2],
+    "max-len": ["warn", { "code": 180 }],
+    "object-curly-spacing": ["error", "always"],
+    "operator-linebreak": ["error", "before"],
   },
 };
