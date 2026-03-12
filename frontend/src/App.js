@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Header from './components/common/Header.js';
-import Dashboard from './pages/Dashboard.tsx';
+import Dashboard from './pages/Dashboard.js';
 import Chat from './pages/Chat.js';
 import DataPreparation from './pages/DataPreparation.js';
 import JobConfiguration from './pages/JobConfiguration.js';
@@ -9,7 +9,7 @@ import Execution from './pages/Execution.js';
 import Results from './pages/Results.js';
 import History from './pages/History.js';
 import LoginPage from './pages/LoginPage.js';
-import { SessionProvider } from './context/SessionContext.tsx';
+import { SessionProvider } from './context/SessionContext.js';
 import MainLayout from './layouts/MainLayout.js';
 // import ProtectedRoute from './components/common/ProtectedRoute'; // Not used for now
 import './App.css';

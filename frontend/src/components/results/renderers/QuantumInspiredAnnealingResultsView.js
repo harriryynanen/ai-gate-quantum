@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FireIcon, BeakerIcon, ClockIcon, ThermometerIcon } from '@heroicons/react/24/outline';
+import { FireIcon, BeakerIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 const ResultItem = ({ icon: Icon, label, value, unit }) => (
   <div className="flex items-start p-4 bg-gray-50 rounded-lg">
@@ -36,7 +36,7 @@ const QuantumInspiredAnnealingResultsView = ({ results }) => {
             value={results.objectiveValue}
         />
         <ResultItem 
-            icon={ThermometerIcon} 
+            icon={BeakerIcon} 
             label="Final Energy Delta"
             value={results.energyDelta}
         />

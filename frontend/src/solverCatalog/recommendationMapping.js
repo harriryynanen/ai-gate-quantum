@@ -1,10 +1,15 @@
 
-import { Solver } from './solverTypes';
-import { solvers } from './solverDefinitions';
+import { solvers } from './solverDefinitions.js';
 
-export type RecommendationPath = 'classical' | 'hybrid' | 'quantum';
+/**
+ * @typedef {'classical' | 'hybrid' | 'quantum'} RecommendationPath
+ */
 
-export const getSolverForRecommendation = (path: RecommendationPath): Solver | undefined => {
+/**
+ * @param {RecommendationPath} path
+ * @returns {import('./solverTypes').Solver | undefined}
+ */
+export const getSolverForRecommendation = (path) => {
   switch (path) {
     case 'classical':
       return solvers.find(s => s.id === 'classical_baseline' && s.enabled);

@@ -1,35 +1,51 @@
 
-import React, { createContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { onSnapshot, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { solvers as solverCatalog } from '../solverCatalog/solverDefinitions';
-import { Solver } from '../solverCatalog/solverTypes';
-import { SolverInputContract } from '../types/solver';
+import { solvers as solverCatalog } from '../solverCatalog/solverDefinitions.js';
 
-// Placeholder types
-type Session = any;
-type Recommendation = any;
-type Execution = any;
-type Result = any;
+/**
+ * @typedef {any} Session
+ */
 
-interface SessionContextValue {
-    session: Session | null;
-    solvers: Solver[];
-    loading: boolean;
-    startNewSession: (goal: string) => Promise<void>;
-    recommendation: Recommendation | null;
-    generateRecommendation: (sessionId: string) => Promise<any>;
-    solverInputContract: SolverInputContract | null;
-    prepareSolverInput: (sessionId: string) => Promise<string | undefined>;
-    execution: Execution | null;
-    result: Result | null;
-}
+/**
+ * @typedef {any} Recommendation
+ */
+
+/**
+ * @typedef {any} Execution
+ */
+
+/**
+ * @typedef {any} Result
+ */
+
+/**
+ * @typedef {object} SolverInputContract
+ * @property {string} id
+ * @property {object} schema
+ * @property {object} uiSchema
+ */
+
+/**
+ * @typedef {object} SessionContextValue
+ * @property {Session | null} session
+ * @property {import('../solverCatalog/solverTypes').Solver[]} solvers
+ * @property {boolean} loading
+ * @property {(goal: string) => Promise<void>} startNewSession
+ * @property {Recommendation | null} recommendation
+ * @property {(sessionId: string) => Promise<any>} generateRecommendation
+ * @property {SolverInputContract | null} solverInputContract
+ * @property {(sessionId: string) => Promise<string | undefined>} prepareSolverInput
+ * @property {Execution | null} execution
+ * @property {Result | null} result
+ */
 
 const API_MODE = process.env.REACT_APP_API_MODE || 'firebase';
 
-export const SessionContext = createContext<SessionContextValue>({
+export const SessionContext = createContext(/** @type {SessionContextValue} */ ({
     session: null,
     solvers: [],
     loading: true,
@@ -40,16 +56,19 @@ export const SessionContext = createContext<SessionContextValue>({
     prepareSolverInput: async () => undefined,
     execution: null,
     result: null,
-});
+}));
 
-export const SessionProvider = ({ children }: { children: ReactNode }) => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [solvers, setSolvers] = useState<Solver[]>(solverCatalog);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
-  const [solverInputContract, setSolverInputContract] = useState<SolverInputContract | null>(null);
-  const [execution, setExecution] = useState<Execution | null>(null);
-  const [result, setResult] = useState<Result | null>(null);
+/**
+ * @param {{ children: React.ReactNode }} props
+ */
+export const SessionProvider = ({ children }) => {
+  const [session, setSession] = useState(/** @type {Session | null} */ (null));
+  const [solvers, setSolvers] = useState(solverCatalog);
+  const [loading, setLoading] = useState(true);
+  const [recommendation, setRecommendation] = useState(/** @type {Recommendation | null} */ (null));
+  const [solverInputContract, setSolverInputContract] = useState(/** @type {SolverInputContract | null} */ (null));
+  const [execution, setExecution] = useState(/** @type {Execution | null} */ (null));
+  const [result, setResult] = useState(/** @type {Result | null} */ (null));
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -62,7 +81,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
     setLoading(false);
   }, []);
 
-  const getResult = useCallback(async (resultId: string) => {
+  const getResult = useCallback(async (resultId) => {
     if (!resultId) return null;
     try {
         const resultDoc = await getDoc(doc(db, "results", resultId));
@@ -73,11 +92,11 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const getSolverInputContract = useCallback(async (contractId: string) => {
+  const getSolverInputContract = useCallback(async (contractId) => {
     if (!contractId) return null;
     try {
         const contractDoc = await getDoc(doc(db, "solverInputs", contractId));
-        const contractData = contractDoc.exists() ? { id: contractDoc.id, ...contractDoc.data() } as SolverInputContract : null;
+        const contractData = contractDoc.exists() ? { id: contractDoc.id, ...contractDoc.data() } : null;
         setSolverInputContract(contractData);
     } catch (error) {
         console.error("Failed to get solver input contract:", error);
@@ -141,7 +160,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, [session?.id, getResult, result, solverInputContract, getSolverInputContract]);
 
-  const startNewSession = useCallback(async (goal: string) => {
+  const startNewSession = useCallback(async (goal) => {
     if (!goal) return;
     setLoading(true);
     try {
@@ -154,7 +173,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [navigate]);
 
-  const generateRecommendation = useCallback(async (sessionId: string) => {
+  const generateRecommendation = useCallback(async (sessionId) => {
     if (!sessionId) return;
     try {
       const rec = await api.generateRecommendation(sessionId);
@@ -167,7 +186,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const prepareSolverInput = useCallback(async (sessionId: string) => {
+  const prepareSolverInput = useCallback(async (sessionId) => {
       if (!sessionId) return;
       setLoading(true);
       try {
@@ -184,7 +203,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
       }
   }, [getSolverInputContract]);
 
-  const value: SessionContextValue = {
+  const value = {
     session,
     solvers,
     loading,

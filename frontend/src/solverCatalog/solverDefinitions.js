@@ -1,7 +1,5 @@
 
-import { Solver } from './solverTypes';
-
-export const solvers: Solver[] = [
+export const solvers = [
   {
     id: 'classical_baseline',
     name: 'Classical Baseline Solver',
