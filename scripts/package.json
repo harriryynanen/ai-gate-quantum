@@ -1,0 +1,9 @@
+
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "main": "seed.js",
+  "dependencies": {
+    "firebase-admin": "^11.0.0"
+  }
+}

@@ -2,6 +2,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SessionContext } from '../context/SessionContext';
+import { api } from '../services/api';
 import RecommendationCard from '../components/job/RecommendationCard';
 import AlternativeCard from '../components/job/AlternativeCard';
 import { CodeTransparencyCard } from '../components/job/CodeTransparencyCard';
@@ -24,8 +25,7 @@ function JobConfiguration() {
     if (!session) return;
 
     try {
-        // The startExecution function is now in api.js
-        // It will be called from here, and the context will update.
+        await api.finalizeExecution(session.id, solverId);
         navigate(`/execution?session=${session.id}`);
     } catch (err) {
       console.error("Error submitting job:", err);

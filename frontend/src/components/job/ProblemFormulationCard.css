@@ -1,0 +1,59 @@
+
+.problem-formulation-card {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+}
+
+.problem-formulation-card h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.problem-formulation-card .card-content p {
+  margin: 10px 0;
+  line-height: 1.6;
+}
+
+.problem-formulation-card .user-notes {
+  background-color: #eef2f7;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 15px;
+}
+
+.problem-formulation-card .warnings {
+  border-top: 1px solid #ddd;
+  margin-top: 15px;
+  padding-top: 10px;
+}
+
+.problem-formulation-card .warnings h4 {
+  color: #d9534f;
+  margin-top: 0;
+}
+
+.problem-formulation-card .warnings ul {
+  padding-left: 20px;
+  margin: 0;
+  color: #d9534f;
+}
+
+.relevance-high {
+  font-weight: bold;
+  color: #4CAF50;
+}
+
+.relevance-medium {
+  font-weight: bold;
+  color: #ff9800;
+}
+
+.relevance-low {
+  font-weight: bold;
+  color: #f44336;
+}
+
+.relevance-none {
+  font-weight: bold;
+  color: #777;
+}

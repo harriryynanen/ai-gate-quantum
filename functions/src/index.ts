@@ -12,11 +12,45 @@ interface Session {
   title: string;
   goal: string;
   status: "new" | "analyzing" | "analyzed" | "queued" | "running" | "completed" | "error";
-  currentStage: "goal" | "method" | "data" | "config" | "execute" | "results";
+  currentStage: "goal" | "formulation" | "method" | "data" | "config" | "execute" | "results";
   createdAt: admin.firestore.FieldValue;
   updatedAt: admin.firestore.FieldValue;
   recommendationId?: string;
   executionId?: string;
+  formulation?: ProblemFormulation;
+  dataReadiness?: DataReadiness;
+}
+
+// Added interfaces directly here for now. In a larger project, this would be a shared package.
+export interface ProblemFormulation {
+  problemStatement: string;
+  goalType: 'Optimization' | 'Simulation' | 'Modeling' | 'Unknown';
+  domainContext: string;
+  decisionVariables: string[];
+  constraints: string[];
+  objectiveFunction: string;
+  candidateProblemClass: string; // e.g., 'Optimization.TSP', 'Simulation.QuantumChemistry'
+  dataInputsNeeded: string[];
+  providedInputs: string[];
+  missingInputs: string[];
+  dataReadiness: number; // A score from 0.0 to 1.0
+  formulationConfidence: number; // A score from 0.0 to 1.0
+  formulationWarnings: string[];
+  quantumRelevance: 'High' | 'Medium' | 'Low' | 'None';
+  classicalBaselineNeed: 'High' | 'Medium' | 'Low';
+  notesForUser: string;
+}
+
+export interface DataReadiness {
+  structuralCompleteness: number; // Score 0.0-1.0
+  variableDefinitionQuality: number; // Score 0.0-1.0
+  constraintDefinitionQuality: number; // Score 0.0-1.0
+  objectiveClarity: number; // Score 0.0-1.0
+  solverInputReadiness: number; // Score 0.0-1.0
+  missingCriticalFields: string[];
+  normalizationNeeded: boolean;
+  transformationNeeded: boolean;
+  readinessSummary: string;
 }
 
 interface Recommendation {
@@ -71,6 +105,10 @@ interface CreateSessionRequest {
   goal: string;
 }
 
+interface FormulateProblemRequest {
+  sessionId: string;
+}
+
 interface GenerateRecommendationRequest {
   sessionId: string;
 }
@@ -122,7 +160,7 @@ export const createSessionFromGoal = onCall<CreateSessionRequest>(async (request
   }
 });
 
-export const generateRecommendation = onCall<GenerateRecommendationRequest>(async (request) => {
+export const formulateProblem = onCall<FormulateProblemRequest>(async (request) => {
   const { sessionId } = request.data;
   if (!sessionId) {
     throw new HttpsError("invalid-argument", "Session ID is required.");
@@ -140,46 +178,149 @@ export const generateRecommendation = onCall<GenerateRecommendationRequest>(asyn
     throw new HttpsError("failed-precondition", "Session has no goal.");
   }
 
-  let rec: Omit<Recommendation, "sessionId" | "generatedAt">;
+  // Simple deterministic, rule-based formulation based on keywords
   const has = (keyword: string) => goal.includes(keyword);
 
-  // Enhanced recommendation logic
-  const isOptimization = has("optimize") || has("routing") || has("portfolio") || has("combination");
-  const isComplex = has("complex") || has("large-scale") || has("many variables");
+  let formulation: ProblemFormulation;
+  let readiness: DataReadiness;
 
-  if (isOptimization) {
-    const quboFeasible = isOptimization && (has("qubo") || isComplex);
+  // Default state
+  let goalType: ProblemFormulation['goalType'] = 'Unknown';
+  let candidateProblemClass = 'General';
+  let quantumRelevance: ProblemFormulation['quantumRelevance'] = 'None';
+  let classicalBaselineNeed: ProblemFormulation['classicalBaselineNeed'] = 'High';
+  let formulationConfidence = 0.3;
+  let notesForUser = "The initial problem statement is too vague for a detailed formulation. Please provide more specific details about your objectives, variables, and constraints.";
+  
+  if (has('optimize') || has('minimize') || has('maximize')) {
+    goalType = 'Optimization';
+    formulationConfidence = 0.6;
+    notesForUser = "The system has identified an optimization problem. To proceed, please define the objective function you wish to optimize and the constraints that apply.";
+    if (has('route') || has('path') || has('tsp')) {
+      candidateProblemClass = 'Optimization.Routing';
+      quantumRelevance = 'Medium';
+    } else if (has('portfolio') || has('assets')) {
+      candidateProblemClass = 'Optimization.Finance';
+      quantumRelevance = 'Medium';
+    }
+  } else if (has('simulate') || has('model')) {
+    goalType = 'Simulation';
+    formulationConfidence = 0.5;
+    notesForUser = "A simulation problem has been identified. Please specify the system you want to model and the properties you are interested in.";
+    if (has('quantum') || has('molecule')) {
+      candidateProblemClass = 'Simulation.QuantumSystem';
+      quantumRelevance = 'High';
+    }
+  }
+  
+  formulation = {
+    problemStatement: sessionDoc.data()?.goal,
+    goalType,
+    domainContext: "Extracted from user goal",
+    decisionVariables: [],
+    constraints: [],
+    objectiveFunction: "",
+    candidateProblemClass,
+    dataInputsNeeded: ["Structured data file (e.g., CSV, JSON)"],
+    providedInputs: [],
+    missingInputs: ["Structured data file"],
+    dataReadiness: 0.1,
+    formulationConfidence,
+    formulationWarnings: ["Formulation is based on a brief goal statement and is likely incomplete."],
+    quantumRelevance,
+    classicalBaselineNeed,
+    notesForUser,
+  };
+
+  readiness = {
+    structuralCompleteness: 0.2,
+    variableDefinitionQuality: 0.1,
+    constraintDefinitionQuality: 0.1,
+    objectiveClarity: 0.1,
+    solverInputReadiness: 0.0,
+    missingCriticalFields: ["Decision Variables", "Constraints", "Objective Function"],
+    normalizationNeeded: true,
+    transformationNeeded: true,
+    readinessSummary: "The problem is not ready for any solver. Critical information is missing.",
+  };
+
+  try {
+    await sessionRef.update({
+      formulation,
+      dataReadiness: readiness,
+      status: "analyzing",
+      currentStage: "formulation", 
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    return { formulation, dataReadiness: readiness };
+  } catch (error) {
+    console.error("Error saving formulation:", error);
+    throw new HttpsError("internal", "Failed to save problem formulation.");
+  }
+});
+
+
+export const generateRecommendation = onCall<GenerateRecommendationRequest>(async (request) => {
+  const { sessionId } = request.data;
+  if (!sessionId) {
+    throw new HttpsError("invalid-argument", "Session ID is required.");
+  }
+
+  const sessionRef = admin.firestore().collection("sessions").doc(sessionId);
+  const sessionDoc = await sessionRef.get();
+
+  if (!sessionDoc.exists) {
+    throw new HttpsError("not-found", "Session not found.");
+  }
+
+  const sessionData = sessionDoc.data() as Session;
+  const goal = (sessionData.goal || "").toLowerCase();
+  const formulation = sessionData.formulation;
+
+  if (!goal) {
+    throw new HttpsError("failed-precondition", "Session has no goal.");
+  }
+
+  let rec: Omit<Recommendation, "sessionId" | "generatedAt">;
+
+  // --- Updated recommendation logic using formulation ---
+  if (formulation && formulation.formulationConfidence > 0.5) {
+    const isOptimization = formulation.goalType === 'Optimization';
+    const quantumSuitable = formulation.quantumRelevance === 'Medium' || formulation.quantumRelevance === 'High';
+
     rec = {
-      problemType: "Optimization",
-      dataReadiness: "medium",
-      recommendedPath: quboFeasible ? "hybrid" : "classical",
-      alternativePath: quboFeasible ? "classical" : "hybrid",
-      recommendationStrength: quboFeasible ? "medium" : "high",
-      confidence: quboFeasible ? 0.75 : 0.9,
-      reasoningSummary: quboFeasible ? "The user's goal is a good fit for a hybrid approach due to its optimization nature and complexity." : "While an optimization problem, the goal lacks clear indicators for quantum suitability. A classical approach is a safer starting point.",
-      quantumFitRationale: quboFeasible ? "The problem appears to have combinatorial complexity that could benefit from quantum-inspired optimization." : "Quantum methods are not recommended without a clearer mapping to a known quantum algorithm.",
-      classicalFitRationale: "Classical solvers provide a strong baseline and are well-suited for a wide range of optimization problems.",
-      tradeoffs: "Hybrid solvers may find better solutions for complex problems, but classical solvers are often faster and more mature.",
-      assumptions: ["The problem can be modeled as a QUBO (for hybrid approaches)."],
-      blockers: ["Without a clear QUBO formulation, hybrid solvers cannot be used."],
-      requiredInputs: ["A well-defined cost function and constraints."],
+      problemType: formulation.candidateProblemClass,
+      dataReadiness: formulation.dataReadiness < 0.5 ? "low" : "medium",
+      recommendedPath: quantumSuitable ? "hybrid" : "classical",
+      alternativePath: quantumSuitable ? "classical" : "hybrid",
+      recommendationStrength: formulation.formulationConfidence < 0.7 ? "low" : "medium",
+      confidence: formulation.formulationConfidence,
+      reasoningSummary: `Based on the structured formulation, this appears to be a ${formulation.candidateProblemClass} problem. The current data readiness is low, so the recommendation is tentative.`, 
+      quantumFitRationale: quantumSuitable ? "The problem structure suggests potential for a quantum or quantum-inspired approach." : "The problem does not currently have characteristics suitable for a quantum approach.",
+      classicalFitRationale: "A classical baseline is always recommended to benchmark performance.",
+      tradeoffs: "Quantum approaches may offer better solutions for specific problems but come with higher complexity and less mature tooling.",
+      assumptions: ["The formulation accurately reflects the user\'s intent."],
+      blockers: formulation.missingInputs,
+      requiredInputs: formulation.dataInputsNeeded,
       overrideAllowed: true,
-      explorationVsProduction: quboFeasible ? "exploration" : "production-ready",
+      explorationVsProduction: "exploration",
       source: "deterministic-server-heuristic",
-      mappedSolverId: quboFeasible ? "quantum_inspired_annealing" : "classical_baseline",
-      mappedSolverCategory: quboFeasible ? "hybrid" : "classical",
-      mappingConfidence: quboFeasible ? 0.8 : 0.95,
-      mappingReason: quboFeasible ? "The problem's structure suggests a good fit for a quantum-inspired annealing solver." : "The problem is best suited for a classical baseline solver due to the lack of clear quantum suitability.",
+      mappedSolverId: quantumSuitable ? "quantum_inspired_annealing" : "classical_baseline",
+      mappedSolverCategory: quantumSuitable ? "hybrid" : "classical",
+      mappingConfidence: 0.7,
+      mappingReason: "Mapping based on the detected problem class.",
       optimizationStructureFit: isOptimization ? "high" : "low",
-      combinatorialComplexity: isComplex ? "high" : "medium",
-      quboMappingFeasibility: quboFeasible ? "medium" : "low",
-      dataPreparationReadiness: "medium",
+      combinatorialComplexity: "low", // Placeholder
+      quboMappingFeasibility: "low", // Placeholder
+      dataPreparationReadiness: "low", // Placeholder
       interpretabilityNeed: "medium",
       runtimeMaturityFit: "high",
-      quantumSuitability: quboFeasible ? "medium" : "low",
+      quantumSuitability: formulation.quantumRelevance === 'High' ? 'high' : formulation.quantumRelevance === 'Medium' ? 'medium' : 'low',
       classicalBaselineNecessity: "high",
     };
+
   } else {
+    // Fallback to original goal-based logic if formulation is weak
     rec = {
       problemType: "General / Unclassified",
       dataReadiness: "low",

@@ -1,0 +1,24 @@
+
+[
+  {
+    "id": "classical_baseline",
+    "name": "Classical Baseline Solver",
+    "description": "A standard classical optimization algorithm (e.g., OR-Tools) to provide a performance baseline.",
+    "problemDomain": "General-purpose optimization",
+    "runtimeStatus": "active-backend"
+  },
+  {
+    "id": "quantum_inspired_annealing",
+    "name": "Quantum-Inspired Annealing",
+    "description": "A quantum-inspired algorithm that mimics the behavior of quantum annealing on classical hardware.",
+    "problemDomain": "Combinatorial optimization",
+    "runtimeStatus": "reference-only"
+  },
+  {
+    "id": "true_quantum_annealing",
+    "name": "True Quantum Annealing",
+    "description": "Direct execution on a quantum annealer (e.g., D-Wave).",
+    "problemDomain": "QUBO problems",
+    "runtimeStatus": "exploratory-placeholder"
+  }
+]

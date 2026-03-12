@@ -11,6 +11,7 @@ export const SessionContext = createContext();
 
 export const SessionProvider = ({ children }) => {
   const [session, setSession] = useState(null);
+  const [solvers, setSolvers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [recommendation, setRecommendation] = useState(null);
   const [execution, setExecution] = useState(null);
@@ -23,6 +24,15 @@ export const SessionProvider = ({ children }) => {
     setExecution(null);
     setLoading(false);
   }
+
+  // Load solver catalog on initial mount
+  useEffect(() => {
+    api.getSolvers()
+      .then(setSolvers)
+      .catch(err => {
+        console.error("Failed to load solvers:", err);
+      });
+  }, []);
 
   // This effect handles loading a session from a URL
   useEffect(() => {
@@ -100,6 +110,7 @@ export const SessionProvider = ({ children }) => {
 
   const value = { 
     session, 
+    solvers,
     loading, 
     startNewSession, 
     recommendation, 

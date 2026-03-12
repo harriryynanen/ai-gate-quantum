@@ -42,6 +42,12 @@ const firebaseApi = {
     return result.data; // Returns { executionId: string }
   },
 
+  finalizeExecution: async (sessionId, solverId) => {
+    const finalizeExecutionFn = httpsCallable(functions, 'finalizeExecution');
+    const result = await finalizeExecutionFn({ sessionId, solverId });
+    return result.data; // Returns { executionId: string, resultId: string }
+  },
+
   getHistory: async () => {
     const q = query(collection(db, "sessions"), orderBy("createdAt", "desc"), limit(20));
     const querySnapshot = await getDocs(q);

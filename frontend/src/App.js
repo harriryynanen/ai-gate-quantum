@@ -11,7 +11,7 @@ import History from './pages/History';
 import LoginPage from './pages/LoginPage';
 import { SessionProvider } from './context/SessionContext';
 import MainLayout from './layouts/MainLayout';
-import ProtectedRoute from './components/common/ProtectedRoute';
+// import ProtectedRoute from './components/common/ProtectedRoute'; // Not used for now
 import './App.css';
 
 const App = () => {
@@ -23,22 +23,21 @@ const App = () => {
           <Route 
             path="/*" 
             element={
-              <ProtectedRoute>
-                <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-                  <Header />
-                  <MainLayout>
-                    <Routes>
-                      <Route path="/" element={<Dashboard />} />
-                      <Route path="/chat" element={<Chat />} />
-                      <Route path="/data-preparation" element={<DataPreparation />} />
-                      <Route path="/job-configuration" element={<JobConfiguration />} />
-                      <Route path="/execution" element={<Execution />} />
-                      <Route path="/results" element={<Results />} />
-                      <Route path="/history" element={<History />} />
-                    </Routes>
-                  </MainLayout>
-                </div>
-              </ProtectedRoute>
+              // Authentication is bypassed for UI development
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+                <Header />
+                <MainLayout>
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/chat" element={<Chat />} />
+                    <Route path="/data-preparation" element={<DataPreparation />} />
+                    <Route path="/job-configuration" element={<JobConfiguration />} />
+                    <Route path="/execution" element={<Execution />} />
+                    <Route path="/results" element={<Results />} />
+                    <Route path="/history" element={<History />} />
+                  </Routes>
+                </MainLayout>
+              </div>
             }
           />
         </Routes>
