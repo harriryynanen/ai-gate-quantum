@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import StatusBadge from './common/StatusBadge';
+import StatusBadge from '../common/StatusBadge';
 
 const JobListItem = ({ job }) => {
   return (

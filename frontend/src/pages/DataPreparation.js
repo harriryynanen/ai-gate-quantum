@@ -15,7 +15,6 @@ const mockData = {
 
 function DataPreparation() {
   const [data, setData] = useState(mockData);
-  const [selectedSolver, setSelectedSolver] = useState('');
 
   const handleUpload = (uploadedData) => {
     // In a real app, you'd parse the uploaded file
@@ -23,8 +22,8 @@ function DataPreparation() {
   };
 
   const handleSolverSelect = (solver) => {
-    setSelectedSolver(solver);
     // Here, you might trigger solver-specific data validation or transformation
+    console.log('Selected solver:', solver);
   };
 
   return (
@@ -32,7 +31,6 @@ function DataPreparation() {
       <h2>Data Preparation</h2>
       <Card>
         <DataToolbar onUpload={handleUpload} onSolverSelect={handleSolverSelect} />
-        {selectedSolver && <p>Selected Solver: {selectedSolver}</p>}
         <DataTable data={data} />
       </Card>
     </div>
