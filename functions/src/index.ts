@@ -1,3 +1,4 @@
+
 import * as admin from "firebase-admin";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 
@@ -38,6 +39,10 @@ interface Recommendation {
   recommendationWarnings?: string[];
   generatedAt: admin.firestore.FieldValue;
   source: "deterministic-server-heuristic";
+  mappedSolverId?: string;
+  mappedSolverCategory?: "classical" | "hybrid" | "quantum";
+  mappingConfidence?: number;
+  mappingReason?: string;
 }
 
 interface Execution {
@@ -146,6 +151,10 @@ export const generateRecommendation = onCall<GenerateRecommendationRequest>(asyn
       overrideAllowed: true,
       explorationVsProduction: "exploration",
       source: "deterministic-server-heuristic",
+      mappedSolverId: "quantum_inspired_annealing",
+      mappedSolverCategory: "hybrid",
+      mappingConfidence: 0.9,
+      mappingReason: "The user's goal points to optimization, mapping to the primary hybrid solver.",
     };
   } else {
     rec = {
@@ -165,6 +174,10 @@ export const generateRecommendation = onCall<GenerateRecommendationRequest>(asyn
       overrideAllowed: true,
       explorationVsProduction: "insufficient-information",
       source: "deterministic-server-heuristic",
+      mappedSolverId: "classical_baseline",
+      mappedSolverCategory: "classical",
+      mappingConfidence: 0.95,
+      mappingReason: "The user's goal is general, mapping to the reliable classical baseline.",
     };
   }
 

@@ -5,23 +5,21 @@ import { SessionContext } from '../context/SessionContext';
 import { api } from '../services/api';
 import RecommendationCard from '../components/job/RecommendationCard';
 import AlternativeCard from '../components/job/AlternativeCard';
+import { getSolverForRecommendation, RecommendationPath } from '../solverCatalog/recommendationMapping';
 
 function JobConfiguration() {
   const navigate = useNavigate();
   const { session, setSession } = useContext(SessionContext);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
-  // Recommendation data is now loaded via SessionContext
+
   const recommendationData = session?.recommendation;
-  
-  // Trigger recommendation generation if not already present
+
   useEffect(() => {
     if (session && !session.recommendation) {
       setLoading(true);
       api.getRecommendation({ sessionId: session.id })
         .then(recs => {
-          // The API call returns the recommendation, which we set in the session
           setSession(prev => ({ ...prev, recommendation: recs, currentStage: 'config' }));
         })
         .catch(err => {
@@ -39,9 +37,8 @@ function JobConfiguration() {
     try {
       const job = await api.submitJob({ 
         sessionId: session.id,
-        config: { path, method }
+        config: { path, solverId: method.id } // Pass solver ID to the backend
       });
-      // The session object is now updated with the job info
       setSession(prev => ({ ...prev, job, currentStage: 'execution' }));
       navigate(`/execution?session=${session.id}`);
     } catch (err) {
@@ -57,6 +54,14 @@ function JobConfiguration() {
   
   const { recommendedPath, alternativePath, confidence, status, reasoningSummary } = recommendationData;
 
+  // Get the solver objects from the catalog
+  const recommendedSolver = getSolverForRecommendation(recommendedPath.method as RecommendationPath);
+  const alternativeSolver = getSolverForRecommendation(alternativePath.method as RecommendationPath);
+
+  if (!recommendedSolver || !alternativeSolver) {
+    return <div className="container mx-auto p-8 text-center text-red-500">Error: Could not find a matching solver for the recommendation.</div>;
+  }
+
   return (
     <div className="container mx-auto p-8">
       <div className="max-w-6xl mx-auto">
@@ -64,22 +69,18 @@ function JobConfiguration() {
         <p className="text-lg text-gray-600 mb-8">The AI has analyzed your goal and proposed two paths. Review the trade-offs and select a path to proceed.</p>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          {/* Recommended Path */}
           <RecommendationCard 
-            method={recommendedPath.method}
+            solver={recommendedSolver}
             confidence={confidence}
             status={status}
             reasoning={reasoningSummary}
-            tradeoffs={{ title: "Expected Trade-offs", items: recommendedPath.tradeoffs }}
-            onSelect={() => handleSelect('recommended', recommendedPath.method)}
+            onSelect={() => handleSelect('recommended', recommendedSolver)}
           />
           
-          {/* Alternative Path */}
           <AlternativeCard 
-            method={alternativePath.method}
+            solver={alternativeSolver}
             reasoning={alternativePath.reasoning}
-            tradeoffs={{ title: "Expected Trade-offs", items: alternativePath.tradeoffs }}
-            onSelect={() => handleSelect('alternative', alternativePath.method)}
+            onSelect={() => handleSelect('alternative', alternativeSolver)}
           />
         </div>
       </div>
@@ -88,4 +89,3 @@ function JobConfiguration() {
 }
 
 export default JobConfiguration;
-
