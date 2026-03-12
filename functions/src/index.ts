@@ -43,6 +43,16 @@ interface Recommendation {
   mappedSolverCategory?: "classical" | "hybrid" | "quantum";
   mappingConfidence?: number;
   mappingReason?: string;
+
+  // New quantum suitability assessment fields
+  optimizationStructureFit: "high" | "medium" | "low";
+  combinatorialComplexity: "high" | "medium" | "low";
+  quboMappingFeasibility: "high" | "medium" | "low";
+  dataPreparationReadiness: "high" | "medium" | "low";
+  interpretabilityNeed: "high" | "medium" | "low";
+  runtimeMaturityFit: "high" | "medium" | "low";
+  quantumSuitability: "high" | "medium" | "low" | "none";
+  classicalBaselineNecessity: "high" | "medium" | "low";
 }
 
 interface Execution {
@@ -133,28 +143,41 @@ export const generateRecommendation = onCall<GenerateRecommendationRequest>(asyn
   let rec: Omit<Recommendation, "sessionId" | "generatedAt">;
   const has = (keyword: string) => goal.includes(keyword);
 
-  if (has("optimize") || has("routing") || has("portfolio") || has("combination")) {
+  // Enhanced recommendation logic
+  const isOptimization = has("optimize") || has("routing") || has("portfolio") || has("combination");
+  const isComplex = has("complex") || has("large-scale") || has("many variables");
+
+  if (isOptimization) {
+    const quboFeasible = isOptimization && (has("qubo") || isComplex);
     rec = {
       problemType: "Optimization",
       dataReadiness: "medium",
-      recommendedPath: "hybrid",
-      alternativePath: "classical",
-      recommendationStrength: "medium",
-      confidence: 0.7,
-      reasoningSummary: "The user's goal mentions keywords related to optimization, a strong candidate for hybrid quantum-classical approaches.",
-      quantumFitRationale: "Quantum-inspired or hybrid solvers can excel at exploring vast solution spaces in combinatorial optimization problems.",
-      classicalFitRationale: "Classical heuristics are mature, fast, and effective for many optimization problems, serving as a vital baseline or component.",
-      tradeoffs: "A hybrid approach may discover better solutions but could have a longer runtime compared to purely classical methods.",
-      assumptions: ["The problem can be modeled in a compatible format (e.g., QUBO)."],
-      blockers: ["Mapping the problem to a quantum-compatible format requires domain expertise."],
-      requiredInputs: ["A clear objective function to be minimized or maximized.", "A well-defined set of constraints."],
+      recommendedPath: quboFeasible ? "hybrid" : "classical",
+      alternativePath: quboFeasible ? "classical" : "hybrid",
+      recommendationStrength: quboFeasible ? "medium" : "high",
+      confidence: quboFeasible ? 0.75 : 0.9,
+      reasoningSummary: quboFeasible ? "The user's goal is a good fit for a hybrid approach due to its optimization nature and complexity." : "While an optimization problem, the goal lacks clear indicators for quantum suitability. A classical approach is a safer starting point.",
+      quantumFitRationale: quboFeasible ? "The problem appears to have combinatorial complexity that could benefit from quantum-inspired optimization." : "Quantum methods are not recommended without a clearer mapping to a known quantum algorithm.",
+      classicalFitRationale: "Classical solvers provide a strong baseline and are well-suited for a wide range of optimization problems.",
+      tradeoffs: "Hybrid solvers may find better solutions for complex problems, but classical solvers are often faster and more mature.",
+      assumptions: ["The problem can be modeled as a QUBO (for hybrid approaches)."],
+      blockers: ["Without a clear QUBO formulation, hybrid solvers cannot be used."],
+      requiredInputs: ["A well-defined cost function and constraints."],
       overrideAllowed: true,
-      explorationVsProduction: "exploration",
+      explorationVsProduction: quboFeasible ? "exploration" : "production-ready",
       source: "deterministic-server-heuristic",
-      mappedSolverId: "quantum_inspired_annealing",
-      mappedSolverCategory: "hybrid",
-      mappingConfidence: 0.9,
-      mappingReason: "The user's goal points to optimization, mapping to the primary hybrid solver.",
+      mappedSolverId: quboFeasible ? "quantum_inspired_annealing" : "classical_baseline",
+      mappedSolverCategory: quboFeasible ? "hybrid" : "classical",
+      mappingConfidence: quboFeasible ? 0.8 : 0.95,
+      mappingReason: quboFeasible ? "The problem's structure suggests a good fit for a quantum-inspired annealing solver." : "The problem is best suited for a classical baseline solver due to the lack of clear quantum suitability.",
+      optimizationStructureFit: isOptimization ? "high" : "low",
+      combinatorialComplexity: isComplex ? "high" : "medium",
+      quboMappingFeasibility: quboFeasible ? "medium" : "low",
+      dataPreparationReadiness: "medium",
+      interpretabilityNeed: "medium",
+      runtimeMaturityFit: "high",
+      quantumSuitability: quboFeasible ? "medium" : "low",
+      classicalBaselineNecessity: "high",
     };
   } else {
     rec = {
@@ -178,6 +201,14 @@ export const generateRecommendation = onCall<GenerateRecommendationRequest>(asyn
       mappedSolverCategory: "classical",
       mappingConfidence: 0.95,
       mappingReason: "The user's goal is general, mapping to the reliable classical baseline.",
+      optimizationStructureFit: "low",
+      combinatorialComplexity: "low",
+      quboMappingFeasibility: "low",
+      dataPreparationReadiness: "low",
+      interpretabilityNeed: "high",
+      runtimeMaturityFit: "high",
+      quantumSuitability: "none",
+      classicalBaselineNecessity: "high",
     };
   }
 
@@ -194,7 +225,7 @@ export const generateRecommendation = onCall<GenerateRecommendationRequest>(asyn
       currentStage: "method",
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
-    return { recommendationId: recommendationRef.id };
+    return { recommendationId: recommendationRef.id, ...recommendation };
   } catch (error) {
     console.error("Error saving recommendation:", error);
     throw new HttpsError("internal", "Failed to save recommendation.");

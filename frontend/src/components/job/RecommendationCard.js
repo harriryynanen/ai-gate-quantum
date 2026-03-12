@@ -1,18 +1,18 @@
 
 import React from 'react';
 
-const getStatusBadge = (status) => {
-    switch (status) {
-      case 'strongly_justified':
-        return <span className="bg-green-100 text-green-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full">Strongly Justified</span>;
-      case 'exploratory':
-        return <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full">Exploratory</span>;
+const getStatusBadge = (strength) => {
+    switch (strength) {
+      case 'high':
+        return <span className="bg-green-100 text-green-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full">Strongly Recommended</span>;
+      case 'medium':
+        return <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full">Recommended</span>;
       default:
-        return <span className="bg-gray-100 text-gray-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full">Not Recommended</span>;
+        return <span className="bg-gray-100 text-gray-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded-full">Use with Caution</span>;
     }
 }
 
-function RecommendationCard({ solver, confidence, status, reasoning, onSelect }) {
+function RecommendationCard({ solver, confidence, recommendation, onSelect }) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-xl border-2 border-blue-500 flex flex-col h-full">
       <div className="flex-grow">
@@ -21,7 +21,7 @@ function RecommendationCard({ solver, confidence, status, reasoning, onSelect })
                 <h3 className="text-2xl font-bold text-gray-900">{solver.name}</h3>
                 <p className="text-sm font-semibold text-blue-600 uppercase">{solver.category} - {solver.maturity}</p>
             </div>
-            {getStatusBadge(status)}
+            {getStatusBadge(recommendation.recommendationStrength)}
         </div>
 
         <div className="mb-4">
@@ -35,8 +35,19 @@ function RecommendationCard({ solver, confidence, status, reasoning, onSelect })
 
         <div className="bg-blue-50 p-4 rounded-md mb-4">
             <h4 className="font-bold text-md text-blue-800 mb-2">AI Reasoning</h4>
-            <p className="text-sm text-gray-800">{reasoning}</p>
+            <p className="text-sm text-gray-800">{recommendation.reasoningSummary}</p>
         </div>
+
+        <div className="bg-gray-50 p-4 rounded-md mb-4">
+            <h4 className="font-bold text-md text-gray-800 mb-2">Quantum Suitability Assessment</h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+                <p><strong>Quantum Suitability:</strong> {recommendation.quantumSuitability}</p>
+                <p><strong>Classical Baseline:</strong> {recommendation.classicalBaselineNecessity}</p>
+                <p><strong>QUBO Feasibility:</strong> {recommendation.quboMappingFeasibility}</p>
+                <p><strong>Combinatorial Complexity:</strong> {recommendation.combinatorialComplexity}</p>
+            </div>
+        </div>
+
 
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>

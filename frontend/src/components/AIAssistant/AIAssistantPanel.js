@@ -4,7 +4,6 @@ import WorkflowTracker from './WorkflowTracker';
 import Card from '../common/Card';
 import NextStep from './NextStep';
 import Recommendation from './Recommendation';
-import { mockResults } from '../../mocks/mockData';
 
 // Mock guidance for each stage
 const stageGuidance = {
@@ -39,9 +38,9 @@ const stageGuidance = {
   results: {
     title: "Review Your Results",
     why: "The analysis is complete. Here are the findings, my interpretation, and your options for what to do next.",
-    nextStep: mockResults.nextSteps.find(s => s.isRecommended),
+    nextStep: { title: "Explore Another Solution", description: "Start a new session to try an alternative solver on the same problem" },
     recommendation: "The model's confidence is high, and the results align with the initial goals of the analysis.",
-    alternatives: mockResults.nextSteps.filter(s => !s.isRecommended),
+    alternatives: [ {title: "Download Results", description: "Export the raw data from the simulation"} ],
     blocked: "You cannot select a new solver at this stage. To do that, you must start a new analysis session.",
   },
 };

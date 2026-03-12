@@ -1,6 +1,15 @@
 import React from 'react';
+import { getAuth, signOut } from 'firebase/auth';
+import { useAuthState } from 'react-firebase-hooks/auth';
 
 const Header = () => {
+  const auth = getAuth();
+  const [user] = useAuthState(auth);
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+  };
+
   // Mock data for placeholders
   const sessionTitle = 'Q3 Financial Risk Analysis';
   const currentStage = 'Data Preparation';
@@ -16,7 +25,14 @@ const Header = () => {
       <div style={styles.controlsArea}>
         <a href="#" style={styles.controlLink}>Help</a>
         <a href="#" style={styles.controlLink}>Settings</a>
-        <a href="#" style={styles.controlLink}>Sign In</a>
+        {user ? (
+          <>
+            <span style={styles.controlLink}>{user.email}</span>
+            <button onClick={handleSignOut} style={styles.controlLink}>Sign Out</button>
+          </>
+        ) : (
+          <a href="/login" style={styles.controlLink}>Sign In</a>
+        )}
       </div>
     </header>
   );
@@ -47,10 +63,16 @@ const styles = {
     display: 'flex',
     justifyContent: 'flex-end',
     gap: '1.5rem',
+    alignItems: 'center',
   },
   controlLink: {
     color: '#4a5568',
     textDecoration: 'none',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    fontSize: 'inherit',
   },
 };
 

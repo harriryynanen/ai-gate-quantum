@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { getSessions } from '../services/firebaseService';
+import { api } from '../services/api';
 import { SessionContext } from '../context/SessionContext';
 
 function Dashboard() {
@@ -15,7 +15,7 @@ function Dashboard() {
 
   useEffect(() => {
     setLoading(true);
-    getSessions()
+    api.getHistory()
       .then(sessions => {
         const sortedSessions = sessions.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
         setRecentSessions(sortedSessions);

@@ -5,69 +5,107 @@ import { api } from '../services/api';
 import { onSnapshot, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 
-const API_MODE = process.env.REACT_APP_API_MODE || 'mock';
+const API_MODE = process.env.REACT_APP_API_MODE || 'firebase';
 
 export const SessionContext = createContext();
 
 export const SessionProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [recommendation, setRecommendation] = useState(null);
+  const [execution, setExecution] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
 
-  // This effect handles loading a session from a URL or creating a new one.
+  const resetState = () => {
+    setSession(null);
+    setRecommendation(null);
+    setExecution(null);
+    setLoading(false);
+  }
+
+  // This effect handles loading a session from a URL
   useEffect(() => {
     const sessionId = new URLSearchParams(location.search).get('session');
     if (sessionId) {
         if (!session || session.id !== sessionId) {
+            setLoading(true);
             api.getSession(sessionId)
-                .then(setSession)
+                .then(sessionData => {
+                    setSession({ ...sessionData, id: sessionId }); // Add id to session object
+                    if (sessionData.recommendationId) {
+                        api.getRecommendation(sessionData.recommendationId).then(setRecommendation);
+                    }
+                    if (sessionData.executionId) {
+                        // Initial load, listener will handle updates
+                    }
+                })
+                .catch(err => {
+                    console.error("Failed to load session:", err);
+                    resetState();
+                })
                 .finally(() => setLoading(false));
         }
     } else {
-        setSession(null); // No session ID, no active session
-        setLoading(false);
+        resetState();
     }
-  }, [location.search]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location.search, session]);
 
   // This effect sets up a real-time listener for the current session's execution data
   useEffect(() => {
-    if (session?.id && API_MODE === 'firebase') {
-      const unsubscribe = onSnapshot(doc(db, "executions", session.id), (doc) => {
+    if (session?.executionId && API_MODE === 'firebase') {
+      const unsubscribe = onSnapshot(doc(db, "executions", session.executionId), (doc) => {
         if (doc.exists()) {
           console.log("Real-time execution update:", doc.data());
-          setSession(prev => {
-              if (!prev || !prev.job) return prev; // Should not happen
-              // Merge new execution data into the existing job object
-              const updatedJob = { ...prev.job, ...doc.data() };
-              return { ...prev, job: updatedJob };
-          });
+          setExecution(doc.data());
+        } else {
+          setExecution(null);
         }
       });
 
       // Cleanup listener on unmount or session change
       return () => unsubscribe();
     }
-  }, [session?.id]);
+  }, [session?.executionId]);
 
-  // A new way to start a session that works with Firebase
   const startNewSession = useCallback(async (goal) => {
     if (!goal) return;
     setLoading(true);
     try {
-        const newSession = await api.createSession({ goal });
-        setSession(newSession);
-        navigate(`/data-preparation?session=${newSession.id}`);
+        const { sessionId } = await api.createSession({ goal });
+        const newSession = await api.getSession(sessionId);
+        setSession({ ...newSession, id: sessionId });
+        navigate(`/job-configuration?session=${sessionId}`);
+        // The recommendation will be generated and loaded via the JobConfiguration page
     } catch (error) {
         console.error("Error starting new session:", error);
-        // Re-throw the error to be caught by the calling component
         throw error;
     } finally {
         setLoading(false);
     }
   }, [navigate]);
 
-  const value = { session, setSession, loading, startNewSession };
+  const generateRecommendation = useCallback(async (sessionId) => {
+    if (!sessionId) return;
+    try {
+      const rec = await api.generateRecommendation(sessionId);
+      setRecommendation(rec);
+      return rec;
+    } catch (error) {
+      console.error("Error generating recommendation:", error);
+      throw error;
+    }
+  }, []);
+
+
+  const value = { 
+    session, 
+    loading, 
+    startNewSession, 
+    recommendation, 
+    generateRecommendation,
+    execution 
+  };
 
   return (
     <SessionContext.Provider value={value}>
