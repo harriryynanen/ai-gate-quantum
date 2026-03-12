@@ -9,32 +9,41 @@ import { SessionContext } from '../context/SessionContext';
 import { api } from '../services/api';
 
 function DataPreparation() {
-  const { session, setSession, loading, error } = useContext(SessionContext);
+  const { session, setSession } = useContext(SessionContext);
   const [recs, setRecs] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Get recommendations on initial load
   useEffect(() => {
-    if (session && !recs) {
-      api.getRecommendation({ sessionId: session.id }).then(setRecs);
+    if (session && !session.recommendation) {
+        api.getRecommendation({ sessionId: session.id })
+          .then(data => {
+            setRecs(data);
+            // Also update the main session context
+            setSession(prev => ({ ...prev, recommendation: data.recommendation, alternative: data.alternative }));
+          })
+          .finally(() => setLoading(false));
+    } else if (session?.recommendation) {
+        setRecs({ recommendation: session.recommendation, alternative: session.alternative });
+        setLoading(false);
     }
-  }, [session, recs]);
+  }, [session, setSession]);
 
   const handleUpload = async (uploadedFile) => {
+    // This is a mock implementation
     const dataset = {
       name: uploadedFile.name,
-      rowCount: 200, // Mock row count
+      rowCount: 200, 
       columns: [{ name: 'Amount', type: 'number' }, { name: 'Risk Score', type: 'number' }]
     };
-    const updatedSession = await api.uploadDataset({ sessionId: session.id, dataset });
-    setSession(updatedSession);
-    // Refresh recommendations after upload
-    api.getRecommendation({ sessionId: session.id }).then(setRecs);
+    
+    // In a real app, we might wait for this to finish
+    api.uploadDataset({ sessionId: session.id, dataset });
+
+    setSession(prev => ({...prev, dataset}));
   };
 
-  // Construct DataTable-friendly data from session
   const data = session?.dataset ? {
     columns: session.dataset.columns.map(c => c.name),
-    // Show placeholder data for preview
     rows: Array(5).fill(null).map((_, i) => [
       `txn-${i}`,
       (Math.random() * 5000).toFixed(2),
@@ -42,25 +51,23 @@ function DataPreparation() {
     ])
   } : { columns: [], rows: [] };
 
-  if (loading && !session) return <div>Loading session...</div>;
-  if (error) return <div className="text-red-500">Error: {error}</div>;
-  if (!session) return <div>No active session.</div>;
+  if (loading && !session) return <div className="container mx-auto p-8 text-center">Loading session...</div>;
 
   return (
-    <div>
+    <div className="container mx-auto p-8">
       <h1 className="text-3xl font-bold mb-6">Data Preparation</h1>
-      {recs && 
+      {recs?.recommendation && 
         <AIRecommendation 
-          method={recs.recommendedMethod.name} 
-          reason={recs.justification} 
+          method={recs.recommendation.method.name} 
+          reason={recs.recommendation.reasoning} 
         />
       }
       <Card>
-        <DataToolbar onUpload={handleUpload} datasetName={session.dataset.name} />
+        <DataToolbar onUpload={handleUpload} datasetName={session?.dataset?.name} />
         <DataTable data={data} />
         <div className="mt-6 text-right">
-          <Link to="/job-config" className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600">
-            Proceed to Configuration &rarr;
+          <Link to="/job-configuration" className="bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300">
+            Proceed to AI Decision Review &rarr;
           </Link>
         </div>
       </Card>
