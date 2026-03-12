@@ -1,63 +1,79 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import Card from '../components/common/Card';
+import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import SessionHeader from '../components/session/SessionHeader';
+import ExecutionTimeline from '../components/execution/ExecutionTimeline';
+import JobStatus from '../components/execution/JobStatus';
+import CodeSnapshotPanel from '../components/job/CodeSnapshotPanel';
 import LogViewer from '../components/job/LogViewer';
-import JobProgress from '../components/job/JobProgress';
-import StatusBadge from '../components/common/StatusBadge';
-
-const mockLogs = [
-  '[2023-10-27 11:30:00] Job started: Protein Folding',
-  '[2023-10-27 11:30:05] Initializing solver: Qiskit VQE',
-  '[2023-10-27 11:30:15] Pre-processing data...',
-  '[2023-10-27 11:30:20] Data validation successful.',
-  '[2023-10-27 11:30:30] Building quantum circuit.',
-  '[2023-10-27 11:31:00] Executing on simulator...',
-];
+import QuantumMetadataPanel from '../components/execution/QuantumMetadataPanel';
+import Card from '../components/common/Card';
+import { SessionContext } from '../context/SessionContext';
+import { mockExecution } from '../mocks/mockData';
 
 function ExecutionMonitor() {
-  const { jobId } = useParams(); // In a real app, you'd fetch job details based on this
-  const [job, setJob] = useState({ id: jobId || '124', name: 'Protein Folding', status: 'running', progress: 0 });
-  const [logs, setLogs] = useState([]);
+  const { session } = useContext(SessionContext);
+  const navigate = useNavigate();
+  const [currentStage, setCurrentStage] = useState(0);
+
+  const { timeline, logs, quantumDetails } = mockExecution;
+  const solver = session.solver;
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setJob(prevJob => {
-        const newProgress = prevJob.progress >= 100 ? 100 : prevJob.progress + 10;
-        const newStatus = newProgress >= 100 ? 'succeeded' : 'running';
-        return { ...prevJob, progress: newProgress, status: newStatus };
-      });
-
-      setLogs(prevLogs => {
-        if (logs.length < mockLogs.length) {
-          return [...prevLogs, mockLogs[prevLogs.length]];
+      setCurrentStage(prev => {
+        if (prev >= timeline.length - 1) {
+          clearInterval(interval);
+          setTimeout(() => navigate('/results'), 2000);
+          return prev;
         }
-        return prevLogs;
+        return prev + 1;
       });
-
-    }, 1000);
+    }, 1500);
 
     return () => clearInterval(interval);
-  }, [logs.length]);
+  }, [timeline.length, navigate]);
+
+  const activeStage = timeline[currentStage];
+  const visibleLogs = logs.filter(log => log.stage <= currentStage);
 
   return (
     <div>
-      <h2>Execution Monitor</h2>
-      <Card>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3>{job.name} (#{job.id})</h3>
-          <StatusBadge status={job.status} />
+      <SessionHeader />
+      <h2 className="text-2xl font-bold mb-4">Execution Monitor</h2>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Card>
+            <h3 className="text-lg font-semibold mb-4">Execution Progress</h3>
+            <ExecutionTimeline stages={timeline} currentStage={currentStage} />
+          </Card>
+          <div className="mt-6">
+            <LogViewer logs={visibleLogs} />
+          </div>
         </div>
-
-        <JobProgress progress={job.progress} />
-
-        <LogViewer logs={logs} />
-
-        <div style={{ marginTop: '20px' }}>
-          {job.status === 'running' && <button>Cancel Job</button>}
-          {job.status === 'succeeded' && <Link to={`/results/${job.id}`}><button>View Results</button></Link>}
-          {job.status === 'failed' && <Link to="/job-configuration"><button>Retry Job</button></Link>}
+        
+        <div>
+          <JobStatus status={activeStage.status} stageName={activeStage.name} />
+          <div className="mt-6">
+             <CodeSnapshotPanel code={solver?.code} />
+          </div>
+          {solver?.type === 'quantum_simulation' && quantumDetails && (
+              <div className="mt-6">
+                <QuantumMetadataPanel details={quantumDetails} />
+              </div>
+            )}
         </div>
-      </Card>
+      </div>
+
+       <div className="mt-8 flex justify-end">
+          <button 
+            onClick={() => navigate('/results')} 
+            className="bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 disabled:bg-gray-400"
+            disabled={currentStage < timeline.length - 1}
+          >
+            Go to Results &rarr;
+          </button>
+        </div>
     </div>
   );
 }
