@@ -1,5 +1,5 @@
-import React, { createContext, useState } from '''react''';
-import { mockSession } from '''../mocks/mockData''';
+import React, { createContext, useState } from 'react';
+import { mockSession } from '../mocks/mockData';
 
 const SessionContext = createContext();
 
