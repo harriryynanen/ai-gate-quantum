@@ -1,10 +1,10 @@
 import * as admin from "firebase-admin";
-import * as functions from "firebase-functions";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 
-// Initialize Firebase Admin
+// Initialize Firebase Admin SDK
 admin.initializeApp();
 
-// --- Interfaces for Firestore documents ---
+// --- Firestore Document Interfaces ---
 
 interface Session {
   userId: string;
@@ -37,7 +37,7 @@ interface Recommendation {
   explorationVsProduction: "exploration" | "production-ready" | "insufficient-information";
   recommendationWarnings?: string[];
   generatedAt: admin.firestore.FieldValue;
-  source: string;
+  source: "deterministic-server-heuristic";
 }
 
 interface Execution {
@@ -46,30 +46,52 @@ interface Execution {
   createdAt: admin.firestore.FieldValue;
   startedAt?: admin.firestore.FieldValue;
   completedAt?: admin.firestore.FieldValue;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  config: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  results: Record<string, any> | null;
+  config: Record<string, unknown>;
+  results: Record<string, unknown> | null;
 }
 
-// --- Callable Functions (V1 Syntax, Final Attempt) ---
+// --- Callable Function Request Interfaces ---
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const createSessionFromGoal = functions.https.onCall(async (data: any, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError("unauthenticated", "The function must be called while authenticated.");
+interface CreateSessionRequest {
+  goal: string;
+}
+
+interface GenerateRecommendationRequest {
+  sessionId: string;
+}
+
+interface StartExecutionRequest {
+  sessionId: string;
+  config: Record<string, unknown>;
+}
+
+interface AppendExecutionLogRequest {
+  executionId: string;
+  log: string;
+}
+
+interface FinalizeExecutionRequest {
+  executionId: string;
+  finalStatus: "completed" | "failed";
+  results: Record<string, unknown>;
+}
+
+// --- Callable Functions (v2) ---
+
+export const createSessionFromGoal = onCall<CreateSessionRequest>(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "The function must be called while authenticated.");
   }
-
-  const goal = data.goal as string;
-  const userId = context.auth.uid;
+  const { goal } = request.data;
+  const { uid } = request.auth;
 
   if (!goal || typeof goal !== "string" || goal.trim().length === 0) {
-    throw new functions.https.HttpsError("invalid-argument", "The function must be called with a non-empty 'goal' string.");
+    throw new HttpsError("invalid-argument", "The function must be called with a non-empty \"goal\" string.");
   }
 
   try {
-    const session: Session = {
-      userId,
+    const newSession: Session = {
+      userId: uid,
       title: `New Session: ${goal.substring(0, 30)}...`,
       goal,
       status: "new",
@@ -77,99 +99,127 @@ export const createSessionFromGoal = functions.https.onCall(async (data: any, co
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     };
-
-    const sessionRef = await admin.firestore().collection("sessions").add(session);
+    const sessionRef = await admin.firestore().collection("sessions").add(newSession);
     return { sessionId: sessionRef.id };
   } catch (error) {
     console.error("Error creating session:", error);
-    throw new functions.https.HttpsError("internal", "Failed to create a new session.");
+    throw new HttpsError("internal", "Failed to create a new session.");
   }
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const generateRecommendation = functions.https.onCall(async (data: any) => {
-  const sessionId = data.sessionId as string;
+export const generateRecommendation = onCall<GenerateRecommendationRequest>(async (request) => {
+  const { sessionId } = request.data;
   if (!sessionId) {
-    throw new functions.https.HttpsError("invalid-argument", "Session ID is required.");
+    throw new HttpsError("invalid-argument", "Session ID is required.");
   }
 
   const sessionRef = admin.firestore().collection("sessions").doc(sessionId);
   const sessionDoc = await sessionRef.get();
 
   if (!sessionDoc.exists) {
-    throw new functions.https.HttpsError("not-found", "Session not found.");
+    throw new HttpsError("not-found", "Session not found.");
   }
 
-  const goal = sessionDoc.data()?.goal.toLowerCase() as string;
+  const goal = (sessionDoc.data()?.goal || "").toLowerCase();
   if (!goal) {
-    throw new functions.https.HttpsError("failed-precondition", "Session has no goal.");
+    throw new HttpsError("failed-precondition", "Session has no goal.");
   }
 
-  let recommendation: Omit<Recommendation, "sessionId" | "generatedAt">;
+  let rec: Omit<Recommendation, "sessionId" | "generatedAt">;
   const has = (keyword: string) => goal.includes(keyword);
 
   if (has("optimize") || has("routing") || has("portfolio") || has("combination")) {
-    recommendation = {
-      problemType: "Optimization", dataReadiness: "medium", recommendedPath: "hybrid",
-      alternativePath: "classical", recommendationStrength: "medium", confidence: 0.65,
-      reasoningSummary: "Goal appears to be optimization, a good fit for hybrid approaches.",
-      quantumFitRationale: "Quantum-inspired solvers can find novel solutions.",
-      classicalFitRationale: "Classical heuristics are mature and provide a good baseline.",
-      tradeoffs: "Quantum/hybrid may be slower but can find better solutions.",
-      assumptions: ["Problem can be formulated as a QUBO."],
-      blockers: ["Requires specialized knowledge."],
-      requiredInputs: ["Objective function.", "Constraints."],
-      overrideAllowed: true, explorationVsProduction: "exploration", source: "server-heuristic",
+    rec = {
+      problemType: "Optimization",
+      dataReadiness: "medium",
+      recommendedPath: "hybrid",
+      alternativePath: "classical",
+      recommendationStrength: "medium",
+      confidence: 0.7,
+      reasoningSummary: "The user's goal mentions keywords related to optimization, a strong candidate for hybrid quantum-classical approaches.",
+      quantumFitRationale: "Quantum-inspired or hybrid solvers can excel at exploring vast solution spaces in combinatorial optimization problems.",
+      classicalFitRationale: "Classical heuristics are mature, fast, and effective for many optimization problems, serving as a vital baseline or component.",
+      tradeoffs: "A hybrid approach may discover better solutions but could have a longer runtime compared to purely classical methods.",
+      assumptions: ["The problem can be modeled in a compatible format (e.g., QUBO)."],
+      blockers: ["Mapping the problem to a quantum-compatible format requires domain expertise."],
+      requiredInputs: ["A clear objective function to be minimized or maximized.", "A well-defined set of constraints."],
+      overrideAllowed: true,
+      explorationVsProduction: "exploration",
+      source: "deterministic-server-heuristic",
     };
   } else {
-    recommendation = {
-      problemType: "General / Unclassified", dataReadiness: "low", recommendedPath: "classical",
-      alternativePath: "quantum", recommendationStrength: "high", confidence: 0.9,
-      reasoningSummary: "Goal is too generic. A classical approach is more pragmatic.",
-      quantumFitRationale: "Quantum approach not recommended without clearer problem definition.",
-      classicalFitRationale: "Classical computing is well-suited for general tasks.",
-      tradeoffs: "Starting with classical is lower risk.",
-      assumptions: ["Goal is not a niche quantum problem."],
-      blockers: ["Lack of structured problem definition."],
-      requiredInputs: ["A more specific goal."],
-      overrideAllowed: true, explorationVsProduction: "insufficient-information", source: "server-heuristic",
+    rec = {
+      problemType: "General / Unclassified",
+      dataReadiness: "low",
+      recommendedPath: "classical",
+      alternativePath: "quantum",
+      recommendationStrength: "high",
+      confidence: 0.95,
+      reasoningSummary: "The user's goal is too generic to map to a quantum advantage. A classical path is a more pragmatic start.",
+      quantumFitRationale: "A quantum approach is not recommended without a clearer, structured problem definition that aligns with known quantum algorithms.",
+      classicalFitRationale: "Classical computing is well-suited for a vast range of tasks and provides the necessary tools for initial data analysis, modeling, and execution.",
+      tradeoffs: "Starting with a classical path is lower risk and allows for building a baseline. A quantum path is high-risk/high-reward and requires significant justification.",
+      assumptions: ["The goal is not a niche quantum problem in disguise."],
+      blockers: ["The lack of a structured problem definition is a primary blocker for any advanced computational approach."],
+      requiredInputs: ["A more specific, measurable goal.", "Structured data relevant to the problem."],
+      overrideAllowed: true,
+      explorationVsProduction: "insufficient-information",
+      source: "deterministic-server-heuristic",
     };
   }
 
   try {
-    const finalRec: Recommendation = { ...recommendation, sessionId, generatedAt: admin.firestore.FieldValue.serverTimestamp() };
-    const recRef = await admin.firestore().collection("recommendations").add(finalRec);
-    await sessionRef.update({ recommendationId: recRef.id, status: "analyzed", currentStage: "method", updatedAt: admin.firestore.FieldValue.serverTimestamp() });
-    return { recommendationId: recRef.id };
+    const recommendation: Recommendation = {
+      ...rec,
+      sessionId,
+      generatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+    const recommendationRef = await admin.firestore().collection("recommendations").add(recommendation);
+    await sessionRef.update({
+      recommendationId: recommendationRef.id,
+      status: "analyzed",
+      currentStage: "method",
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    return { recommendationId: recommendationRef.id };
   } catch (error) {
     console.error("Error saving recommendation:", error);
-    throw new functions.https.HttpsError("internal", "Failed to save recommendation.");
+    throw new HttpsError("internal", "Failed to save recommendation.");
   }
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const startExecution = functions.https.onCall(async (data: any) => {
-  const sessionId = data.sessionId as string;
+export const startExecution = onCall<StartExecutionRequest>(async (request) => {
+  const { sessionId, config } = request.data;
   if (!sessionId) {
-    throw new functions.https.HttpsError("invalid-argument", "Session ID is required.");
+    throw new HttpsError("invalid-argument", "Session ID is required.");
   }
-  const config = data.config || {};
+
   try {
-    const execution: Execution = { sessionId, status: "queued", createdAt: admin.firestore.FieldValue.serverTimestamp(), config, results: null };
-    const executionRef = await admin.firestore().collection("executions").add(execution);
-    await admin.firestore().collection("sessions").doc(sessionId).update({ executionId: executionRef.id, status: "queued", currentStage: "execute", updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+    const newExecution: Execution = {
+      sessionId,
+      status: "queued",
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      config: config || {},
+      results: null,
+    };
+    const executionRef = await admin.firestore().collection("executions").add(newExecution);
+    await admin.firestore().collection("sessions").doc(sessionId).update({
+      executionId: executionRef.id,
+      status: "queued",
+      currentStage: "execute",
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
     return { executionId: executionRef.id };
   } catch (error) {
     console.error("Error starting execution:", error);
-    throw new functions.https.HttpsError("internal", "Failed to start execution.");
+    throw new HttpsError("internal", "Failed to start execution.");
   }
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const appendExecutionLog = functions.https.onCall(async (data: any) => {
-  const { executionId, log } = data;
+export const appendExecutionLog = onCall<AppendExecutionLogRequest>(async (request) => {
+  const { executionId, log } = request.data;
   if (!executionId || !log) {
-    throw new functions.https.HttpsError("invalid-argument", "Execution ID and log message are required.");
+    throw new HttpsError("invalid-argument", "Execution ID and log message are required.");
   }
   try {
     const logEntry = { timestamp: admin.firestore.FieldValue.serverTimestamp(), message: log };
@@ -177,28 +227,36 @@ export const appendExecutionLog = functions.https.onCall(async (data: any) => {
     return { success: true };
   } catch (error) {
     console.error("Error appending log:", error);
-    throw new functions.https.HttpsError("internal", "Failed to append log.");
+    throw new HttpsError("internal", "Failed to append log.");
   }
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const finalizeExecution = functions.https.onCall(async (data: any) => {
-  const { executionId, finalStatus, results } = data;
+export const finalizeExecution = onCall<FinalizeExecutionRequest>(async (request) => {
+  const { executionId, finalStatus, results } = request.data;
   if (!executionId || !finalStatus) {
-    throw new functions.https.HttpsError("invalid-argument", "Execution ID and final status are required.");
+    throw new HttpsError("invalid-argument", "Execution ID and final status are required.");
   }
   try {
     const executionRef = admin.firestore().collection("executions").doc(executionId);
-    const updateData = { status: finalStatus, completedAt: admin.firestore.FieldValue.serverTimestamp(), results: results || null };
-    await executionRef.update(updateData);
+    await executionRef.update({
+      status: finalStatus,
+      completedAt: admin.firestore.FieldValue.serverTimestamp(),
+      results: results || null,
+    });
+
     const execDoc = await executionRef.get();
     const sessionId = execDoc.data()?.sessionId;
+
     if (sessionId) {
-      await admin.firestore().collection("sessions").doc(sessionId).update({ status: finalStatus === "completed" ? "completed" : "error", currentStage: "results", updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+      await admin.firestore().collection("sessions").doc(sessionId).update({
+        status: finalStatus === "completed" ? "completed" : "error",
+        currentStage: "results",
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
     }
     return { success: true };
   } catch (error) {
     console.error("Error finalizing execution:", error);
-    throw new functions.https.HttpsError("internal", "Failed to finalize execution.");
+    throw new HttpsError("internal", "Failed to finalize execution.");
   }
 });
