@@ -1,20 +1,50 @@
-import React from 'react';
+
+import React, { useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import MethodSelectionCard from '../components/job/MethodSelectionCard';
-
-// Mock data for recommended and alternative methods
-const recommendedMethod = {
-  name: "Quantum-Inspired Annealer",
-  description: "A powerful solver for complex optimization problems, ideal for uncovering non-obvious solutions in large datasets.",
-  reason: "Your goal of 'Financial Risk Analysis' involves finding the optimal balance across many variables, which is a perfect use case for this method."
-};
-
-const alternativeMethod = {
-  name: "Classical Monte Carlo Simulation",
-  description: "A standard, robust method for simulating a wide range of possibilities to assess risk.",
-  reason: "This is a well-understood, fast, and reliable method for risk analysis, though it may not explore the solution space as comprehensively as the annealer."
-};
+import { SessionContext } from '../context/SessionContext';
+import { api } from '../services/api';
 
 function JobConfiguration() {
+  const navigate = useNavigate();
+  const { session, setSession } = useContext(SessionContext);
+  const [recs, setRecs] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (session) {
+      api.getRecommendation({ sessionId: session.id })
+        .then(setRecs)
+        .finally(() => setLoading(false));
+    }
+  }, [session]);
+
+  const handleSelectMethod = async (method) => {
+    const jobConfig = { 
+        method, 
+        parameters: { mockParam: 'value' } // Placeholder
+    };
+    const updatedSession = await api.submitJob({ sessionId: session.id, config: jobConfig });
+    setSession(updatedSession);
+    navigate('/execution'); // Navigate to execution monitor
+  };
+
+  if (loading || !recs) return <div>Loading recommendations...</div>;
+
+  const recommendedMethod = {
+      name: recs.recommendedMethod.name,
+      description: "A powerful solver for complex optimization problems, ideal for uncovering non-obvious solutions in large datasets.",
+      reason: recs.reasoning,
+      method: recs.recommendedMethod
+  };
+
+  const alternativeMethod = {
+      name: recs.alternateMethod.name,
+      description: "A standard, robust method for simulating a wide range of possibilities to assess risk.",
+      reason: "This is a well-understood, fast, and reliable method for risk analysis.",
+      method: recs.alternateMethod
+  };
+
   return (
     <div>
       <div className="text-center mb-10">
@@ -23,8 +53,8 @@ function JobConfiguration() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <MethodSelectionCard method={recommendedMethod} isRecommended={true} />
-        <MethodSelectionCard method={alternativeMethod} isRecommended={false} />
+        <MethodSelectionCard method={recommendedMethod} onSelect={handleSelectMethod} isRecommended={true} />
+        <MethodSelectionCard method={alternativeMethod} onSelect={handleSelectMethod} isRecommended={false} />
       </div>
     </div>
   );

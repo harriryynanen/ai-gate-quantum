@@ -17,10 +17,10 @@ const MainLayout = ({ children }) => {
         <ul>
           <li><Link to="/">Dashboard</Link></li>
           <li><Link to="/chat">AI Chat</Link></li>
-          <li><Link to="/data">Data Preparation</Link></li>
-          <li><Link to="/config">Job Configuration</Link></li>
+          {/* Corrected link paths */}
+          <li><Link to="/data-prep">Data Preparation</Link></li>
+          <li><Link to="/job-config">Job Configuration</Link></li>
           <li><Link to="/execution">Execution</Link></li>
-          {/* Corrected the link to include a mock session ID */}
           <li><Link to={`/results/${mockSessionId}`}>Results</Link></li>
           <li><Link to="/history">History</Link></li>
         </ul>
