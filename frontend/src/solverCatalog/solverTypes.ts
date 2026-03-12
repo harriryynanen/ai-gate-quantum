@@ -3,6 +3,8 @@ export type SolverCategory = "classical" | "hybrid" | "quantum";
 
 export type SolverMaturity = "concept" | "prototype" | "runnable" | "production-ready";
 
+export type RuntimeStatus = "active-backend" | "reference-only" | "exploratory-placeholder";
+
 export interface Solver {
   id: string;
   name: string;
@@ -19,4 +21,9 @@ export interface Solver {
   recommendedWhen: string[];
   notRecommendedWhen: string[];
   enabled: boolean;
+
+  // New fields for runtime transparency
+  runtimeStatus: RuntimeStatus;
+  referenceCodePath: string; 
+  activeExecutionPath: string;
 }

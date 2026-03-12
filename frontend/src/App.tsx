@@ -1,16 +1,16 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Header from './components/common/Header';
-import Dashboard from './pages/Dashboard';
-import Chat from './pages/Chat';
-import DataPreparation from './pages/DataPreparation';
-import JobConfiguration from './pages/JobConfiguration';
-import Execution from './pages/Execution';
-import Results from './pages/Results';
-import History from './pages/History';
-import LoginPage from './pages/LoginPage';
-import { SessionProvider } from './context/SessionContext';
-import MainLayout from './layouts/MainLayout';
+import Header from './components/common/Header.js';
+import Dashboard from './pages/Dashboard.tsx';
+import Chat from './pages/Chat.js';
+import DataPreparation from './pages/DataPreparation.js';
+import JobConfiguration from './pages/JobConfiguration.js';
+import Execution from './pages/Execution.js';
+import Results from './pages/Results.js';
+import History from './pages/History.js';
+import LoginPage from './pages/LoginPage.js';
+import { SessionProvider } from './context/SessionContext.tsx';
+import MainLayout from './layouts/MainLayout.js';
 // import ProtectedRoute from './components/common/ProtectedRoute'; // Not used for now
 import './App.css';
 

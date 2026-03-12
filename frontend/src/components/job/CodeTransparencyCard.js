@@ -47,7 +47,7 @@ export const CodeTransparencyCard = ({ solver }) => {
             <h3 className="font-semibold text-lg text-gray-700">Solver Reference Code</h3>
             <p className="text-gray-600">
               Find the auditable reference implementation for this solver in the repository at:
-              <code className="block bg-gray-200 p-2 rounded mt-2 text-sm">functions/src/solvers/reference_code/{solver.id}.py</code>
+              <code className="block bg-gray-200 p-2 rounded mt-2 text-sm">{solver.referenceCodePath}</code>
             </p>
           </div>
         )}

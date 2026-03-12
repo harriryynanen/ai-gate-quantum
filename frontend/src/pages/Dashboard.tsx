@@ -2,13 +2,13 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api';
-import { SessionContext } from '../context/SessionContext';
+import { SessionContext } from '../context/SessionContext.tsx';
 
 function Dashboard() {
   const [goal, setGoal] = useState('');
-  const [recentSessions, setRecentSessions] = useState([]);
+  const [recentSessions, setRecentSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   
   // Use the session context for starting new sessions
   const { startNewSession, loading: sessionLoading } = useContext(SessionContext);
@@ -27,7 +27,7 @@ function Dashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleStartSession = async (e) => {
+  const handleStartSession = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!goal.trim() || sessionLoading) return;
 
@@ -36,13 +36,13 @@ function Dashboard() {
     try {
       // The context now handles API call, state update, and navigation
       await startNewSession(goal);
-    } catch (err) {
+    } catch (err) { 
       console.error("Failed to create session: ", err);
       setError('Failed to start a new session. Please try again.');
     }
   };
   
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
       case 'running': return 'bg-blue-100 text-blue-800';
@@ -92,7 +92,7 @@ function Dashboard() {
                     <p className="text-center text-gray-500">Loading recent sessions...</p>
                 ) : recentSessions.length > 0 ? (
                     <div className="space-y-4">
-                        {recentSessions.map(session => (
+                        {recentSessions.map((session: any) => (
                             <Link 
                                 to={`/data-preparation?session=${session.id}`}
                                 key={session.id}

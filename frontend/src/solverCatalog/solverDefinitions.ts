@@ -36,6 +36,9 @@ export const solvers: Solver[] = [
       'The problem size exceeds the practical limits of classical hardware.'
     ],
     enabled: true,
+    runtimeStatus: 'active-backend',
+    referenceCodePath: '04_solvers/reference_code/python/classical_placeholder.py',
+    activeExecutionPath: 'Firebase Cloud Function: `startExecution` -> `finalizeExecution`',
   },
   {
     id: 'quantum_inspired_annealing',
@@ -69,6 +72,9 @@ export const solvers: Solver[] = [
       'The problem can be solved efficiently with a classical baseline solver.'
     ],
     enabled: true,
+    runtimeStatus: 'reference-only',
+    referenceCodePath: '04_solvers/reference_code/python/quantum_inspired_annealing_placeholder.py',
+    activeExecutionPath: 'N/A',
   },
   {
     id: 'qaoa_candidate',
@@ -103,5 +109,8 @@ export const solvers: Solver[] = [
       'The problem is large and cannot be mapped to the available number of qubits.'
     ],
     enabled: true,
+    runtimeStatus: 'exploratory-placeholder',
+    referenceCodePath: '04_solvers/reference_code/python/qaoa_placeholder.py',
+    activeExecutionPath: 'N/A',
   },
 ];

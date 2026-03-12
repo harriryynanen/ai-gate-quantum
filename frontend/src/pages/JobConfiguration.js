@@ -2,15 +2,25 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SessionContext } from '../context/SessionContext';
-import { api } from '../services/api';
 import RecommendationCard from '../components/job/RecommendationCard';
 import AlternativeCard from '../components/job/AlternativeCard';
-import { CodeTransparencyCard } from '../components/job/CodeTransparencyCard';
+import { SolverInputCard } from '../components/job/SolverInputCard';
+import { ArrowRightIcon } from '@heroicons/react/24/solid';
 
 function JobConfiguration() {
   const navigate = useNavigate();
-  const { session, recommendation, generateRecommendation, loading, solvers } = useContext(SessionContext);
+  const { 
+    session, 
+    recommendation, 
+    generateRecommendation, 
+    loading, 
+    solvers, 
+    solverInputContract,
+    prepareSolverInput 
+  } = useContext(SessionContext);
+  
   const [error, setError] = useState('');
+  const [selectedSolver, setSelectedSolver] = useState(null);
 
   useEffect(() => {
     if (session && !recommendation) {
@@ -21,20 +31,30 @@ function JobConfiguration() {
     }
   }, [session, recommendation, generateRecommendation]);
 
-  const handleSelect = async (solverId) => {
+  const handleSelectAndPrepare = async (solver) => {
     if (!session) return;
+    setSelectedSolver(solver);
+    setError(''); // Clear previous errors
 
     try {
-        await api.finalizeExecution(session.id, solverId);
-        navigate(`/execution?session=${session.id}`);
+      await prepareSolverInput(session.id);
     } catch (err) {
-      console.error("Error submitting job:", err);
-      setError("Failed to start the job. Please check the console.");
+      console.error("Error preparing solver input:", err);
+      setError("Failed to prepare solver input. See console for details.");
+      setSelectedSolver(null); // Deselect on error
+    }
+  };
+  
+  const handleProceedToExecution = () => {
+    if (session && solverInputContract) {
+      // This navigation will be updated when the execution page is built out
+      // For now, it can navigate to a placeholder or the existing execution page
+      navigate(`/execution?session=${session.id}`);
     }
   };
 
   if (loading || !solvers.length) return <div className="container mx-auto p-8 text-center">Loading AI recommendations and solver data...</div>;
-  if (error) return <div className="container mx-auto p-8 text-center text-red-500">{error}</div>;
+  if (error && !solverInputContract) return <div className="container mx-auto p-8 text-center text-red-500">{error}</div>;
   if (!recommendation) return <div className="container mx-auto p-8 text-center">No session active or recommendation found.</div>;
   
   const { 
@@ -50,32 +70,67 @@ function JobConfiguration() {
 
 
   if (!recommendedSolver || !alternativeSolver) {
-    return <div className="container mx-auto p-8 text-center text-red-500">Error: Could not find a matching solver for the recommendation. Please check the solver catalog.</div>;
+    return <div className="container mx-auto p-8 text-center text-red-500">Error: Could not find a matching solver. Please check the solver catalog.</div>;
   }
 
   return (
     <div className="container mx-auto p-8">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold mb-2">AI-Guided Decision Review</h1>
-        <p className="text-lg text-gray-600 mb-8">The AI has analyzed your goal and proposed a path. Review the trade-offs and select a path to proceed.</p>
+        <p className="text-lg text-gray-600 mb-8">
+          {!solverInputContract 
+            ? "The AI has analyzed your goal and proposed a path. Review the trade-offs and select a path to prepare it for execution."
+            : "The solver input has been prepared based on your selection. Review the details below before proceeding to execution."
+          }
+        </p>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-8">
-          <RecommendationCard 
-            solver={recommendedSolver}
-            confidence={confidence}
-            reasoning={reasoningSummary}
-            recommendation={recommendation} // Pass the whole recommendation
-            onSelect={() => handleSelect(recommendedSolver.id)}
-          />
-          
-          <AlternativeCard 
-            solver={alternativeSolver}
-            reasoning={recommendation.classicalFitRationale} // Example, adjust as needed
-            onSelect={() => handleSelect(alternativeSolver.id)}
-          />
-        </div>
+        {/* Step 1: Selection */}
+        {!solverInputContract && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mb-8">
+                <RecommendationCard 
+                    solver={recommendedSolver}
+                    confidence={confidence}
+                    reasoning={reasoningSummary}
+                    recommendation={recommendation}
+                    onSelect={() => handleSelectAndPrepare(recommendedSolver)}
+                />
+                
+                <AlternativeCard 
+                    solver={alternativeSolver}
+                    reasoning={recommendation.classicalFitRationale} 
+                    onSelect={() => handleSelectAndPrepare(alternativeSolver)}
+                />
+            </div>
+        )}
 
-        <CodeTransparencyCard solver={recommendedSolver} />
+        {/* Step 2: Review Prepared Input */}
+        {loading && selectedSolver && !solverInputContract && (
+            <div className="text-center p-8">Preparing input for <strong>{selectedSolver.name}</strong>...</div>
+        )}
+
+        {error && <div className="text-center p-4 my-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
+
+        {solverInputContract && (
+          <div>
+            <SolverInputCard contract={solverInputContract} />
+            
+            <div className="mt-8 text-center">
+              {solverInputContract.readinessStatus === 'ready' ? (
+                <button 
+                  onClick={handleProceedToExecution}
+                  className="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition duration-300 ease-in-out shadow-md flex items-center justify-center mx-auto"
+                >
+                  Proceed to Execution Setup
+                  <ArrowRightIcon className="h-5 w-5 ml-2" />
+                </button>
+              ) : (
+                <p className="text-gray-600">The input is not ready for execution. Please address the warnings above.</p>
+              )}
+            </div>
+
+          </div>
+        )}
+
       </div>
     </div>
   );
