@@ -1,37 +1,53 @@
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { SessionContext } from '../context/SessionContext';
-import { api } from '../services/api';
+import { getSessions, createSession } from '../services/firebaseService';
 
 function Dashboard() {
   const [goal, setGoal] = useState('');
   const [recentSessions, setRecentSessions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { startNewSession } = useContext(SessionContext);
+  const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.getHistory()
-      .then(data => {
-        // The data from Firestore might not be plain objects, so we map them
-        const sessions = data.map(s => ({ ...s, id: s.id }));
-        setRecentSessions(sessions);
+    setLoading(true);
+    getSessions()
+      .then(sessions => {
+        const sortedSessions = sessions.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+        setRecentSessions(sortedSessions);
       })
-      .catch(console.error)
+      .catch(err => {
+        console.error("Error fetching sessions: ", err);
+        setError('Failed to load recent sessions.');
+      })
       .finally(() => setLoading(false));
   }, []);
 
-  const handleStartSession = (e) => {
+  const handleStartSession = async (e) => {
     e.preventDefault();
-    startNewSession(goal);
+    if (!goal.trim() || isCreating) return;
+
+    setIsCreating(true);
+    setError(null);
+
+    try {
+      const newSessionId = await createSession(goal);
+      navigate(`/data-preparation?session=${newSessionId}`);
+    } catch (err) {
+      console.error("Failed to create session: ", err);
+      setError('Failed to start a new session. Please try again.');
+      setIsCreating(false);
+    }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
-      case 'active': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'running': return 'bg-blue-100 text-blue-800';
+      case 'new': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-yellow-100 text-yellow-800';
     }
   };
 
@@ -55,23 +71,25 @@ function Dashboard() {
                             onChange={(e) => setGoal(e.target.value)}
                             placeholder="E.g., 'Optimize my logistics network for faster delivery times'"
                             className="flex-grow p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
+                            disabled={isCreating}
                         />
                         <button 
                             type="submit" 
-                            className="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition transform hover:scale-105 disabled:bg-gray-400"
-                            disabled={!goal.trim()}
+                            className="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition transform hover:scale-105 disabled:bg-gray-400 disabled:scale-100"
+                            disabled={!goal.trim() || isCreating}
                         >
-                            Start Session
+                            {isCreating ? 'Starting...' : 'Start Session'}
                         </button>
                     </div>
                 </form>
+                 {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
             </div>
 
             {/* Recent Sessions */}
             <div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Recent Sessions</h2>
                 {loading ? (
-                    <p>Loading recent sessions...</p>
+                    <p className="text-center text-gray-500">Loading recent sessions...</p>
                 ) : recentSessions.length > 0 ? (
                     <div className="space-y-4">
                         {recentSessions.map(session => (
@@ -96,7 +114,7 @@ function Dashboard() {
                         ))}
                     </div>
                 ) : (
-                    <p className="text-gray-500">No recent sessions found.</p>
+                    !error && <p className="text-center text-gray-500 bg-gray-50 p-8 rounded-lg">No recent sessions found. Start a new analysis to begin.</p>
                 )}
             </div>
         </div>

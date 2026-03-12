@@ -1,72 +1,73 @@
 
-import { Timestamp } from "firebase/firestore";
+import { Timestamp } from 'firebase/firestore';
 
-// Main session document
+/**
+ * Represents a single analysis session in QuantumFlow.
+ */
 export interface Session {
   id: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-  userId: string;
+  userId?: string | null;
   title: string;
   goal: string;
-  status: "active" | "completed" | "archived";
-  currentStage: "data" | "config" | "execution" | "results";
-  selectedPath?: "recommended" | "alternative";
-  selectedMethod?: Method;
-  comparisonModeEnabled?: boolean;
+  status: 'new' | 'running' | 'completed' | 'error';
+  currentStage: 'goal' | 'data' | 'method' | 'job' | 'execute' | 'results';
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  selectedPath?: 'quantum' | 'classical' | null;
+  selectedMethod?: string | null;
+  recommendationId?: string | null;
+  executionId?: string | null;
+  resultId?: string | null;
 }
 
-// Represents a specific method for analysis
-export interface Method {
-    id: string;
-    name: string;
-    type: "quantum_simulation" | "quantum_inspired" | "classical";
-    description: string;
-}
-
-// Documents the recommendation given by the AI
+/**
+ * Stores the AI-generated recommendation for a session.
+ */
 export interface Recommendation {
-  id: string; // Same as sessionId
-  recommendedPath: {
-      method: Method;
-      reasoning: string;
-      tradeoffs: Record<string, string>;
-  };
-  alternativePath: {
-      method: Method;
-      reasoning: string;
-      tradeoffs: Record<string, string>;
-  };
-  confidence: number;
-  status: "strongly_justified" | "exploratory" | "not_recommended";
+  id: string;
+  sessionId: string;
+  recommendedPath: 'quantum' | 'classical';
+  alternativePath: 'quantum' | 'classical';
+  recommendationStrength: 'high' | 'medium' | 'low';
+  confidence: number; // e.g., 0.0 to 1.0
   reasoningSummary: string;
-  assumptions: string[];
+  tradeoffs: string;
+  assumptions: string;
+  blockers: string;
+  requiredInputs: string[];
+  overrideAllowed: boolean;
+  explorationVsProduction: 'exploration' | 'production';
 }
 
-// Tracks the status of a running job
+/**
+ * Tracks the state of a job execution.
+ */
 export interface Execution {
-  id: string; // Same as sessionId
-  method: Method;
-  status: "queued" | "preparing" | "running" | "completed" | "failed";
-  progress: number;
-  startedAt?: Timestamp;
-  finishedAt?: Timestamp;
+  id: string;
+  sessionId: string;
+  method: string;
+  status: 'queued' | 'running' | 'completed' | 'failed';
+  progress: number; // 0 to 100
+  startedAt?: Timestamp | null;
+  finishedAt?: Timestamp | null;
   logEntries: LogEntry[];
 }
 
 export interface LogEntry {
-    timestamp: Timestamp;
-    message: string;
-    level: "info" | "warn" | "error";
+  timestamp: Timestamp;
+  message: string;
+  level: 'info' | 'warn' | 'error';
 }
 
-// Stores the final results of an execution
+/**
+ * Stores the results of a completed execution.
+ */
 export interface Result {
-  id: string; // Same as sessionId
+  id: string;
+  sessionId: string;
   summary: string;
+  metrics: { [key: string]: number | string };
   interpretation: string;
   nextActions: string[];
-  metrics: Record<string, any>;
-  rawOutput: Record<string, any>;
-  method: Method;
+  createdAt: Timestamp;
 }
