@@ -1,45 +1,47 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExecutionTimeline from '../components/execution/ExecutionTimeline';
 import JobStatus from '../components/execution/JobStatus';
 import CodeSnapshotPanel from '../components/job/CodeSnapshotPanel';
 import LogViewer from '../components/job/LogViewer';
 import Card from '../components/common/Card';
-import { SessionContext } from '../context/SessionContext';
+import ExecutionMetadata from '../components/execution/ExecutionMetadata'; // Import the new component
 import { mockExecution } from '../mocks/mockData';
 
 function ExecutionMonitor() {
-  const { session } = useContext(SessionContext);
   const navigate = useNavigate();
   const [currentStage, setCurrentStage] = useState(0);
 
-  const { timeline, logs } = mockExecution;
-  const code = `def solve(data):
-    # Quantum-inspired optimization logic
-    print("Analyzing risk...")
-    return {'optimal_risk': 0.42}`
+  const { timeline, logs, code, metadata } = mockExecution; // Get metadata from mock
+
+  const isComplete = currentStage >= timeline.length - 1;
 
   useEffect(() => {
+    if (isComplete) return;
+
     const interval = setInterval(() => {
-      setCurrentStage(prev => {
-        if (prev >= timeline.length - 1) {
-          clearInterval(interval);
-          setTimeout(() => navigate(`/results/session-${Date.now()}`), 2000);
-          return prev;
-        }
-        return prev + 1;
-      });
+      setCurrentStage(prev => prev + 1);
     }, 1500);
 
     return () => clearInterval(interval);
-  }, [timeline.length, navigate]);
+  }, [isComplete]);
 
   const activeStage = timeline[currentStage];
   const visibleLogs = logs.filter(log => log.stage <= currentStage);
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Execution Monitor</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Execution Monitor</h1>
+        {isComplete && (
+          <button 
+            onClick={() => navigate(`/results/session-${Date.now()}`)} 
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            View Results
+          </button>
+        )}
+      </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
@@ -54,6 +56,9 @@ function ExecutionMonitor() {
         
         <div>
           <JobStatus status={activeStage.status} stageName={activeStage.name} />
+          <div className="mt-6">
+            <ExecutionMetadata metadata={metadata} />
+          </div>
           <div className="mt-6">
              <CodeSnapshotPanel code={code} />
           </div>

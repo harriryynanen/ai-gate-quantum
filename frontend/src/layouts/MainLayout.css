@@ -1,0 +1,58 @@
+/* frontend/src/layouts/MainLayout.css */
+
+.main-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+.left-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background-color: #1f2937; /* was bg-gray-800 */
+  color: #ffffff; /* was text-white */
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.left-sidebar h1 {
+  font-size: 1.5rem; /* was text-2xl */
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+.left-sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.left-sidebar li {
+  margin-bottom: 0.5rem;
+}
+
+.left-sidebar a {
+  color: #ffffff;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.left-sidebar a:hover {
+  color: #93c5fd; /* was hover:text-blue-300 */
+}
+
+.main-workspace {
+  flex-grow: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  background-color: #f3f4f6; /* was bg-gray-100 */
+}
+
+.right-ai-rail {
+  width: 384px; /* was w-96 */
+  flex-shrink: 0;
+  background-color: #ffffff;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05); /* was shadow-lg */
+  overflow-y: auto;
+}

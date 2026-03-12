@@ -1,41 +1,96 @@
 import React from 'react';
-import MessageList from './MessageList';
-import MessageInput from './MessageInput';
+import { useLocation } from 'react-router-dom';
+import WorkflowTracker from './WorkflowTracker';
 import Card from '../common/Card';
+import NextStep from './NextStep';
+import Recommendation from './Recommendation';
+import { mockResults } from '../../mocks/mockData';
+
+// Mock guidance for each stage
+const stageGuidance = {
+  dashboard: {
+    title: "Welcome Back!",
+    why: "This is your starting point. From here, you can start a new analysis or review past work.",
+    nextStep: { title: "Start New Analysis", description: "Define a new goal for the AI to tackle.", link: "/chat" },
+  },
+  chat: {
+    title: "Define Your Goal",
+    why: "A clear goal helps me select the best tools for your analysis. Tell me what you want to achieve.",
+    nextStep: { title: "Prepare Your Data", description: "Once the goal is set, the next step is to upload and validate your data.", link: "/data-prep" },
+  },
+  'data-prep': {
+    title: "Data Preparation",
+    why: "Correctly formatted data is essential for a successful analysis. Here, we ensure your data matches the requirements of the potential solvers.",
+    nextStep: { title: "Select a Method", description: "Based on your data and goals, I will now recommend the best analysis method.", link: "/job-config" },
+  },
+  'job-config': {
+    title: "Configure Your Job",
+    why: "This is the final approval step. Review my recommended method and an alternative, then lock it in to start the execution.",
+    nextStep: { title: "Execute Job", description: "Launch the solver and monitor its progress in real-time.", link: "/execution" },
+    recommendation: "The Quantum-Inspired Annealer is recommended for its ability to handle complex combinatorial optimization problems, which is a great fit for your stated goal.",
+    alternatives: [
+      { title: "Classical Solver", description: "A traditional approach. Faster, but may not find the globally optimal solution." },
+    ],
+  },
+  execution: {
+    title: "Monitoring Execution",
+    why: "The solver is now running. I am monitoring the process for you. No action is needed at this time.",
+  },
+  results: {
+    title: "Review Your Results",
+    why: "The analysis is complete. Here are the findings, my interpretation, and your options for what to do next.",
+    nextStep: mockResults.nextSteps.find(s => s.isRecommended),
+    recommendation: "The model's confidence is high, and the results align with the initial goals of the analysis.",
+    alternatives: mockResults.nextSteps.filter(s => !s.isRecommended),
+    blocked: "You cannot select a new solver at this stage. To do that, you must start a new analysis session.",
+  },
+};
+
+const getPageKey = (pathname) => {
+  if (pathname.startsWith('/results')) return 'results';
+  if (pathname.startsWith('/execution')) return 'execution';
+  if (pathname.startsWith('/job-config')) return 'job-config';
+  if (pathname.startsWith('/data-prep')) return 'data-prep';
+  if (pathname.startsWith('/chat')) return 'chat';
+  return 'dashboard';
+}
 
 const AIAssistantPanel = () => {
-  // Mock data for now
-  const session = {
-    id: 'session-xyz-789',
-    goal: 'Q3 Financial Risk Analysis',
-  };
-
-  const messages = [
-    { id: 1, text: 'Welcome! Describe your analysis goal, and I will guide you.', sender: 'ai' },
-    { id: 2, text: 'I need to analyze the risk profile of our Q3 transactions.', sender: 'user' },
-    { id: 3, text: "Understood. Based on your goal, I recommend the 'Quantum Risk Solver'. Let's start by preparing your data.", sender: 'ai' },
-  ];
-
-  const handleSendMessage = (text) => {
-    console.log('New message:', text);
-    // This will be wired up to the session context
-  };
+  const location = useLocation();
+  const pageKey = getPageKey(location.pathname);
+  const guidance = stageGuidance[pageKey];
 
   return (
-    <div className="bg-gray-50 h-full flex flex-col border-l border-gray-200">
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="font-bold text-lg">AI Assistant</h2>
-        <p className="text-sm text-gray-600">Session: {session.goal}</p>
-      </div>
-
-      <div className="flex-grow p-4 overflow-y-auto">
+    <div className="bg-gray-50 h-full flex flex-col border-l border-gray-200 p-4">
+      <WorkflowTracker />
+      
+      <div className="flex-grow overflow-y-auto space-y-4">
+        <h3 className="font-bold text-lg">{guidance.title}</h3>
+        
         <Card>
-          <MessageList messages={messages} />
+          <h4 className="font-semibold text-md mb-2">Why this stage matters:</h4>
+          <p className="text-sm text-gray-700">{guidance.why}</p>
         </Card>
-      </div>
 
-      <div className="p-4 border-t border-gray-200">
-        <MessageInput onSendMessage={handleSendMessage} />
+        {guidance.nextStep && <NextStep step={guidance.nextStep} />}
+        
+        {guidance.recommendation && <Recommendation recommendation={guidance.recommendation} />}
+
+        {guidance.alternatives && (
+            <div>
+                <h4 className="font-semibold text-md mb-2 mt-4">Alternative Options</h4>
+                <div className="space-y-2">
+                    {guidance.alternatives.map(alt => <Card key={alt.title}><p className="text-sm"><b>{alt.title}:</b> {alt.description}</p></Card>)}
+                </div>
+            </div>
+        )}
+
+        {guidance.blocked && (
+          <Card>
+            <h4 className="font-bold text-md">Blocked Actions</h4>
+            <p className="text-sm text-gray-600 mt-1">{guidance.blocked}</p>
+          </Card>
+        )}
       </div>
     </div>
   );

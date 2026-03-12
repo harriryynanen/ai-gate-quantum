@@ -2,18 +2,12 @@ import React from 'react';
 
 const ResultSummary = ({ summary }) => {
   if (!summary) return null;
-
+  
   return (
-    <div style={{ margin: '20px 0' }}>
-      <h4>Result Summary</h4>
-      <dl>
-        {Object.entries(summary).map(([key, value]) => (
-          <React.Fragment key={key}>
-            <dt style={{ fontWeight: 'bold' }}>{key}</dt>
-            <dd style={{ marginLeft: '20px', marginBottom: '10px' }}>{value}</dd>
-          </React.Fragment>
-        ))}
-      </dl>
+    <div>
+      <h3 className="text-xl font-bold mb-2">{summary.title}</h3>
+      <p className="mb-2">{summary.finding}</p>
+      <p className="text-sm"><strong>Confidence:</strong> <span className="font-mono bg-gray-100 px-2 py-1 rounded">{summary.confidence}</span></p>
     </div>
   );
 };

@@ -4,18 +4,11 @@ const RawOutput = ({ output }) => {
   if (!output) return null;
 
   return (
-    <div style={{ margin: '20px 0' }}>
-      <h4>Raw Output</h4>
-      <pre style={{
-        backgroundColor: '#2d2d2d',
-        color: '#f1f1f1',
-        padding: '15px',
-        borderRadius: '5px',
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-all',
-      }}>
-        <code>{output}</code>
-      </pre>
+    <div>
+        <h4 className="text-md font-semibold mt-4 mb-2">Raw Output</h4>
+        <pre className="bg-gray-100 p-4 rounded-md text-xs overflow-auto"> 
+            <code>{output}</code>
+        </pre>
     </div>
   );
 };
