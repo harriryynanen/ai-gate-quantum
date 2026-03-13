@@ -5,7 +5,7 @@ import { SessionContext } from '../context/SessionContext.js';
 import { WORKFLOW_STAGES, STAGE_CONFIG } from '../workflow/stages.js';
 import WorkflowLayout from '../layouts/WorkflowLayout.js';
 import LoadingSpinner from '../components/common/LoadingSpinner.js';
-import { LightBulbIcon, ClockIcon, CheckCircleIcon, PlayIcon, ArrowRightIcon, BeakerIcon, CpuChipIcon } from '@heroicons/react/24/solid';
+import { LightBulbIcon, ClockIcon, CheckCircleIcon, PlayIcon, ArrowRightIcon, BeakerIcon, CpuChipIcon, XCircleIcon } from '@heroicons/react/24/solid';
 
 // Reusable UI Components
 const InfoCard = ({ title, children, className }) => (
@@ -119,6 +119,8 @@ function Execution() {
         updateSession
     } = useContext(SessionContext);
 
+    const stage = currentStageConfig || STAGE_CONFIG[WORKFLOW_STAGES.EXECUTE];
+
     const workflowStages = Object.keys(STAGE_CONFIG).map(key => ({ key, ...STAGE_CONFIG[key] }));
 
     // Redirect if execution is complete
@@ -156,10 +158,10 @@ function Execution() {
 
     return (
         <WorkflowLayout 
-            title={currentStageConfig?.name || 'Execution'}
-            description={currentStageConfig?.description || 'The job is being processed by the selected solver.'}
+            title={stage?.name || 'Loading...'}
+            description={stage?.description || ''}
             guidance={renderGuidance()}
-            stage={currentStageConfig}
+            stage={stage}
             session={session}
             workflowStages={workflowStages}
         >

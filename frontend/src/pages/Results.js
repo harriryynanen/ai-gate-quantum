@@ -130,6 +130,8 @@ function Results() {
     currentStageConfig,
   } = useContext(SessionContext);
 
+  const stage = currentStageConfig || STAGE_CONFIG[WORKFLOW_STAGES.REVIEW_RESULTS];
+
   const workflowStages = Object.keys(STAGE_CONFIG).map(key => ({ key, ...STAGE_CONFIG[key] }));
 
   const renderMainContent = () => {
@@ -158,10 +160,10 @@ function Results() {
 
   return (
     <WorkflowLayout 
-      title={currentStageConfig?.name || 'Results'}
+      title={stage?.name || 'Loading...'}
       description={`Analysis results for: ${session?.goal || 'your session'}`}
       guidance={renderGuidance()}
-      stage={currentStageConfig}
+      stage={stage}
       session={session}
       workflowStages={workflowStages}
     >

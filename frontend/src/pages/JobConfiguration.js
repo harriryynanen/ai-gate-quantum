@@ -116,6 +116,8 @@ function JobConfiguration() {
     updateSession
   } = useContext(SessionContext);
 
+  const stage = currentStageConfig || STAGE_CONFIG[WORKFLOW_STAGES.PREPARE_SOLVER_INPUT];
+
   const workflowStages = Object.keys(STAGE_CONFIG).map(key => ({ key, ...STAGE_CONFIG[key] }));
 
   const renderMainContent = () => {
@@ -151,10 +153,10 @@ function JobConfiguration() {
 
   return (
     <WorkflowLayout 
-      title={currentStageConfig?.name || 'Job Configuration'}
-      description={currentStageConfig?.description || 'Review the prepared inputs for the selected solver.'}
+      title={stage?.name || 'Loading...'}
+      description={stage?.description || ''}
       guidance={renderGuidance()}
-      stage={currentStageConfig}
+      stage={stage}
       session={session}
       workflowStages={workflowStages}
     >

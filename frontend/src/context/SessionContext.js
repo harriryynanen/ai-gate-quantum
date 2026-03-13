@@ -1,155 +1,127 @@
 
 import React, { createContext, useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { api } from '../services/api';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { doc, onSnapshot, updateDoc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 import { WORKFLOW_STAGES, STAGE_CONFIG } from '../workflow/stages';
 
-// Create a context with a default shape
-export const SessionContext = createContext({
-  session: null,
-  artifacts: {},
-  history: [],
-  loading: true,
-  error: null,
-  currentStageConfig: null,
-  startNewSession: async () => {},
-  loadSession: async () => {},
-  updateSession: async () => {},
-});
+const SessionContext = createContext();
 
-export const SessionProvider = ({ children }) => {
-    const [session, setSession] = useState(null);
-    const [artifacts, setArtifacts] = useState({});
-    const [history, setHistory] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [currentStageConfig, setCurrentStageConfig] = useState(null);
+const SessionProvider = ({ children }) => {
+  const [session, setSession] = useState(null);
+  const [artifacts, setArtifacts] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
-    const location = useLocation();
+  const currentStageConfig = session ? STAGE_CONFIG[session.currentStage] : null;
 
-    const fetchHistory = useCallback(async () => {
-        try {
-            const sessionHistory = await api.getHistory();
-            setHistory(sessionHistory || []);
-        } catch (err) {
-            setError(new Error(`Failed to load session history: ${err.message}`));
-        }
-    }, []);
+  // Effect to manage session from URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const sessionId = params.get('session');
 
-    const navigateToStage = useCallback((stage, sessionId) => {
-        const stageConfig = STAGE_CONFIG[stage];
-        const targetPath = `${stageConfig.path}?session=${sessionId}`;
-        if (window.location.pathname + window.location.search !== targetPath) {
-            navigate(targetPath);
-        }
-    }, [navigate]);
-
-    const loadSession = useCallback(async (sessionId) => {
-        if (!sessionId) {
-            setLoading(false);
-            return;
-        }
-
-        setLoading(true);
-        setError(null);
-        try {
-            const loadedSession = await api.getSession(sessionId);
-            if (!loadedSession) {
-                throw new Error("Session not found.");
+    if (sessionId) {
+      setLoading(true);
+      const sessionRef = doc(db, 'sessions', sessionId);
+      const unsubscribe = onSnapshot(sessionRef, 
+        (docSnap) => {
+          if (docSnap.exists()) {
+            const sessionData = { id: docSnap.id, ...docSnap.data() };
+            if (!sessionData.currentStage) {
+              sessionData.currentStage = WORKFLOW_STAGES.FORMULATE_PROBLEM;
             }
-            setSession(loadedSession);
-            
-            const sessionArtifacts = await api.getArtifacts(sessionId);
-            setArtifacts(sessionArtifacts || {});
-            
-            const stageConfig = STAGE_CONFIG[loadedSession.currentStage];
-            setCurrentStageConfig(stageConfig);
-            navigateToStage(loadedSession.currentStage, sessionId);
-
-        } catch (err) {
-            setError(new Error(`Failed to load session ${sessionId}: ${err.message}`));
-            navigate('/'); // Redirect to dashboard on error
-        } finally {
-            setLoading(false);
-        }
-    }, [navigate, navigateToStage]);
-
-    // Effect to handle initial session loading from URL
-    useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        const sessionId = params.get('session');
-        if (sessionId && (!session || session.id !== sessionId)) {
-            loadSession(sessionId);
-        } else if (!sessionId) {
+            setSession(sessionData);
+            // Navigate to the correct path for the session's stage
+            const expectedPath = STAGE_CONFIG[sessionData.currentStage]?.path;
+            if (expectedPath && location.pathname !== expectedPath) {
+              navigate(`${expectedPath}?session=${sessionId}`, { replace: true });
+            }
+          } else {
+            setError(new Error('Session not found.'));
             setSession(null);
-            setArtifacts({});
+          }
+          setLoading(false);
+        },
+        (err) => {
+          console.error("Session snapshot error:", err);
+          setError(err);
+          setLoading(false);
         }
-        // Fetch history on initial load
-        fetchHistory();
-    }, [location.search, session, loadSession, fetchHistory]);
+      );
+      return () => unsubscribe();
+    } else {
+      setSession(null);
+      setLoading(false);
+    }
+  }, [location.search, navigate]);
 
-    const startNewSession = async (goal) => {
-        setLoading(true);
-        setError(null);
-        try {
-            // Use the corrected contract: { goal: string }
-            const newSession = await api.createSession({ goal });
-            setSession(newSession);
-            setArtifacts({}); // Reset artifacts for the new session
-            await fetchHistory(); // Refresh history list
-            
-            const stageConfig = STAGE_CONFIG[newSession.currentStage];
-            setCurrentStageConfig(stageConfig);
-            navigateToStage(newSession.currentStage, newSession.id);
+  // Effect to load session artifacts
+  useEffect(() => {
+    if (session && session.id) {
+        const artifactsRef = doc(db, `sessions/${session.id}/artifacts`, 'latest');
+        const unsubscribe = onSnapshot(artifactsRef, 
+            (docSnap) => {
+                if (docSnap.exists()) {
+                    setArtifacts(docSnap.data());
+                }
+            }, 
+            (err) => {
+                console.error("Artifacts snapshot error:", err);
+                // Do not set a main error state here, as artifacts may not always exist
+            }
+        );
+        return () => unsubscribe();
+    } else {
+        setArtifacts({});
+    }
+  }, [session]);
 
-        } catch (err) {
-            const newError = new Error(`Failed to start new session: ${err.message}`);
-            setError(newError);
-            throw newError;
-        } finally {
-            setLoading(false);
-        }
-    };
+  // Function to create a new session
+  const createNewSession = async (goal) => {
+    if (!goal) return;
+    try {
+      const newSessionRef = doc(db, 'sessions', new Date().getTime().toString()); 
+      const newSession = {
+        goal: goal,
+        createdAt: new Date(),
+        currentStage: WORKFLOW_STAGES.FORMULATE_PROBLEM,
+      };
+      await setDoc(newSessionRef, newSession);
+      navigate(`${STAGE_CONFIG.formulate_problem.path}?session=${newSessionRef.id}`);
+    } catch (err) {
+      console.error("Error creating new session:", err);
+      setError(err);
+    }
+  };
 
-    const updateSession = async (sessionId, targetStage, payload = {}) => {
-        setLoading(true);
-        setError(null);
-        try {
-            const updateData = { ...payload, currentStage: targetStage };
-            const updatedSession = await api.updateSession(sessionId, updateData);
-            setSession(updatedSession);
-            
-            // Reload artifacts as the update may have generated new ones
-            const sessionArtifacts = await api.getArtifacts(sessionId);
-            setArtifacts(sessionArtifacts || {});
+  // Function to update the current stage of a session
+  const updateSession = async (sessionId, newStage) => {
+    const sessionRef = doc(db, 'sessions', sessionId);
+    try {
+      await updateDoc(sessionRef, { currentStage: newStage });
+    } catch (err) {
+      console.error(`Error updating session stage to ${newStage}:`, err);
+      setError(err);
+    }
+  };
 
-            const stageConfig = STAGE_CONFIG[updatedSession.currentStage];
-            setCurrentStageConfig(stageConfig);
-            navigateToStage(updatedSession.currentStage, sessionId);
+  const value = {
+    session,
+    artifacts,
+    loading,
+    error,
+    currentStageConfig,
+    createNewSession,
+    updateSession,
+  };
 
-        } catch (err) {
-            setError(new Error(`Failed to update session: ${err.message}`));
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const contextValue = {
-        session,
-        artifacts,
-        loading,
-        error,
-        history,
-        startNewSession,
-        loadSession,
-        updateSession,
-        currentStageConfig,
-    };
-
-    return (
-        <SessionContext.Provider value={contextValue}>
-            {children}
-        </SessionContext.Provider>
-    );
+  return (
+    <SessionContext.Provider value={value}>
+      {children}
+    </SessionContext.Provider>
+  );
 };
+
+export { SessionContext, SessionProvider };

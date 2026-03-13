@@ -175,7 +175,8 @@ function DataPreparation() {
     updateSession
   } = useContext(SessionContext);
 
-  const stage = currentStageConfig || STAGE_CONFIG.problem_formulation;
+  // Correctly access the stage config with bracket notation
+  const stage = currentStageConfig || STAGE_CONFIG[WORKFLOW_STAGES.FORMULATE_PROBLEM];
 
   const workflowStages = Object.keys(STAGE_CONFIG).map(key => ({
       key,
@@ -205,8 +206,8 @@ function DataPreparation() {
 
   return (
     <WorkflowLayout 
-      title={stage.name}
-      description={stage.description}
+      title={stage?.name || 'Loading...'}
+      description={stage?.description || ''}
       guidance={renderGuidance()}
       stage={stage}
       session={session}
