@@ -1,33 +1,33 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
-// import { getAuth } from 'firebase/auth';
-// import { useAuthState } from 'react-firebase-hooks/auth';
+import { BeakerIcon, UserCircleIcon } from '@heroicons/react/24/solid';
 
 const Header = () => {
-  // const auth = getAuth();
-  // const [user] = useAuthState(auth);
-
   return (
-    <header style={{ 
-      display: 'flex', 
-      justifyContent: 'space-between', 
-      alignItems: 'center', 
-      padding: '1rem', 
-      backgroundColor: '#f0f0f0' 
-    }}>
-      <h1>Quantum Analytics Platform</h1>
-      <nav>
-        <Link to="/">Dashboard</Link> |
-        <Link to="/chat">AI Chat</Link> |
-        <Link to="/history">Job History</Link>
-      </nav>
-      <div>
-        {/* {user ? (
-          <span>Welcome, {user.displayName || user.email}</span>
-        ) : (
-          <Link to="/login">Login</Link>
-        )} */}
-         <Link to="/login">Login</Link> {/* Simplified for development */}
+    <header className="bg-white shadow-sm border-b border-gray-200">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo and Branding */}
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-2 text-gray-800 hover:text-indigo-600 transition">
+              <BeakerIcon className="h-8 w-8 text-indigo-600" />
+              <span className="text-xl font-bold">QuantumFlow</span>
+            </Link>
+          </div>
+
+          {/* Main Navigation - Simplified for core workflow */}
+          <nav className="hidden md:flex items-center space-x-6">
+            <Link to="/" className="text-gray-600 hover:text-gray-900 font-medium transition">Dashboard</Link>
+            <Link to="/history" className="text-gray-600 hover:text-gray-900 font-medium transition">History</Link>
+            {/* Additional links can be added here as needed */}
+          </nav>
+
+          {/* User Profile Section */}
+          <div className="flex items-center">
+             <UserCircleIcon className="h-8 w-8 text-gray-400 hover:text-gray-600 transition cursor-pointer"/>
+          </div>
+        </div>
       </div>
     </header>
   );

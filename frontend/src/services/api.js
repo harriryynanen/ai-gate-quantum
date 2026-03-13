@@ -3,63 +3,80 @@ import { getDb, getFunctionsService } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
 import { 
     doc, 
-    getDoc, 
-    getDocs, 
-    collection, 
-    query, 
-    orderBy, 
-    limit 
+    getDoc,
+    updateDoc,
+    addDoc,
+    collection,
+    serverTimestamp,
+    query,
+    orderBy,
+    limit,
+    getDocs
 } from "firebase/firestore";
 
+// A helper function to get a document from a specific collection
+const getDocument = async (collectionName, docId) => {
+    if (!docId) return null;
+    const db = getDb();
+    const docRef = doc(db, collectionName, docId);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
+};
+
 const firebaseApi = {
-  createSession: async ({ goal }) => {
-    const functions = getFunctionsService();
-    const createSessionFn = httpsCallable(functions, 'createSessionFromGoal');
-    const result = await createSessionFn({ goal });
-    return result.data;
-  },
+    // --- Session Management ---
+    createSession: async (sessionData) => {
+        const db = getDb();
+        const sessionRef = await addDoc(collection(db, "sessions"), {
+            ...sessionData,
+            createdAt: serverTimestamp(),
+        });
+        return { sessionId: sessionRef.id };
+    },
 
-  getSession: async (sessionId) => {
-    if (!sessionId) return null;
-    const db = getDb();
-    const sessionDoc = await getDoc(doc(db, "sessions", sessionId));
-    return sessionDoc.exists() ? { id: sessionDoc.id, ...sessionDoc.data() } : null;
-  },
+    updateSession: async (sessionId, data) => {
+        const db = getDb();
+        const sessionRef = doc(db, 'sessions', sessionId);
+        return await updateDoc(sessionRef, data);
+    },
 
-  getRecommendation: async (recommendationId) => {
-    if (!recommendationId) return null;
-    const db = getDb();
-    const recDoc = await getDoc(doc(db, "recommendations", recommendationId));
-    return recDoc.exists() ? { id: recDoc.id, ...recDoc.data() } : null;
-  },
+    // --- Artifact Fetching ---
+    getSession: (sessionId) => getDocument("sessions", sessionId),
+    getFormulation: (formulationId) => getDocument("formulations", formulationId),
+    getRecommendation: (recommendationId) => getDocument("recommendations", recommendationId),
+    getSolverInput: (solverInputId) => getDocument("solverInputs", solverInputId),
+    getExecution: (executionId) => getDocument("executions", executionId),
+    getResult: (resultId) => getDocument("results", resultId),
 
-  generateRecommendation: async (sessionId) => {
-    const functions = getFunctionsService();
-    const generateRecommendationFn = httpsCallable(functions, 'generateRecommendation');
-    const result = await generateRecommendationFn({ sessionId });
-    return result.data;
-  },
+    // --- History ---
+    getHistory: async () => {
+        const db = getDb();
+        const q = query(collection(db, "sessions"), orderBy("createdAt", "desc"), limit(20));
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    },
 
-  prepareSolverInput: async (sessionId) => {
-    const functions = getFunctionsService();
-    const prepareFunction = httpsCallable(functions, 'prepareSolverInput');
-    const response = await prepareFunction({ sessionId });
-    return response.data;
-  },
+    // --- Callable Functions (for backend operations) ---
+    generateRecommendation: async (sessionId) => {
+        const functions = getFunctionsService();
+        const generateRecommendationFn = httpsCallable(functions, 'generateRecommendation');
+        const result = await generateRecommendationFn({ sessionId });
+        return result.data;
+    },
 
-  executeSolver: async (sessionId, solverInputId) => {
-    const functions = getFunctionsService();
-    const executeSolverFn = httpsCallable(functions, 'executeSolver');
-    const result = await executeSolverFn({ sessionId, solverInputId });
-    return result.data; // Returns { executionId: string }
-  },
+    prepareSolverInput: async (sessionId) => {
+        const functions = getFunctionsService();
+        const prepareFunction = httpsCallable(functions, 'prepareSolverInput');
+        const response = await prepareFunction({ sessionId });
+        return response.data; // Expects { solverInputId: string }
+    },
 
-  getHistory: async () => {
-    const db = getDb();
-    const q = query(collection(db, "sessions"), orderBy("createdAt", "desc"), limit(20));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  },
+    executeSolver: async (sessionId, solverInputId) => {
+        const functions = getFunctionsService();
+        const executeSolverFn = httpsCallable(functions, 'executeSolver');
+        const result = await executeSolverFn({ sessionId, solverInputId });
+        return result.data; // Expects { executionId: string }
+    },
 };
 
 export const api = firebaseApi;

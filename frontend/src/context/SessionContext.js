@@ -1,230 +1,148 @@
 
 import React, { createContext, useState, useEffect, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { onSnapshot, doc, getDoc } from 'firebase/firestore';
-import { getDb } from '../firebase'; // Use the getter
-import { solvers as solverCatalog } from '../solverCatalog/solverDefinitions.js';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
+import { WORKFLOW_STAGES, STAGE_CONFIG } from '../workflow/stages';
 
-// ... (typedefs remain the same) ...
-
-export const SessionContext = createContext(/** @type {SessionContextValue} */ ({
-    session: null,
-    solvers: [],
-    loading: true,
-    error: null,
-    startNewSession: async () => {},
-    setActiveSession: () => {},
-    recommendation: null,
-    generateRecommendation: async () => {},
-    solverInputContract: null,
-    prepareSolverInput: async () => undefined,
-    executeSolver: async () => undefined,
-    execution: null,
-    result: null,
-}));
+// Create a context with a default shape to avoid destructuring errors on initial render
+export const SessionContext = createContext({
+  session: null,
+  artifacts: {},
+  history: [],
+  loading: true,
+  error: null,
+  currentStageConfig: null,
+  startNewSession: async () => {},
+  loadSession: async () => {},
+  updateSession: async () => {},
+});
 
 export const SessionProvider = ({ children }) => {
-  const [session, setSession] = useState(/** @type {Session | null} */ (null));
-  const [solvers] = useState(solverCatalog);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [recommendation, setRecommendation] = useState(/** @type {Recommendation | null} */ (null));
-  const [solverInputContract, setSolverInputContract] = useState(/** @type {SolverInputContract | null} */ (null));
-  const [execution, setExecution] = useState(/** @type {Execution | null} */ (null));
-  const [result, setResult] = useState(/** @type {Result | null} */ (null));
-  const location = useLocation();
-  const navigate = useNavigate();
+    const [session, setSession] = useState(null);
+    const [artifacts, setArtifacts] = useState({});
+    const [history, setHistory] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [currentStageConfig, setCurrentStageConfig] = useState(null);
 
-  const resetState = useCallback(() => {
-    setSession(null);
-    setRecommendation(null);
-    setSolverInputContract(null);
-    setExecution(null);
-    setResult(null);
-    setLoading(false);
-    setError(null);
-  }, []);
+    const navigate = useNavigate();
 
-  const getExecution = useCallback(async (executionId) => {
-    if (!executionId) return null;
-    const db = getDb();
-    try {
-        const executionDoc = await getDoc(doc(db, "executions", executionId));
-        const executionData = executionDoc.exists() ? { id: executionDoc.id, ...executionDoc.data() } : null;
-        setExecution(executionData);
-        if (executionData?.resultId) {
-            await getResult(executionData.resultId);
+    const fetchHistory = useCallback(async () => {
+        try {
+            const sessionHistory = await api.getHistory();
+            setHistory(sessionHistory || []);
+        } catch (err) {
+            setError(new Error(`Failed to load session history: ${err.message}`));
         }
-    } catch (error) {
-        console.error("Failed to get execution:", error);
-        setError(error);
-    }
-  }, []);
+    }, []);
 
-  const getResult = useCallback(async (resultId) => {
-    if (!resultId) return null;
-    const db = getDb();
-    try {
-        const resultDoc = await getDoc(doc(db, "results", resultId));
-        const resultData = resultDoc.exists() ? { id: resultDoc.id, ...resultDoc.data() } : null;
-        setResult(resultData);
-    } catch (error) {
-        console.error("Failed to get result:", error);
-        setError(error);
-    }
-  }, []);
+    const loadSession = useCallback(async (sessionId) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const loadedSession = await api.getSession(sessionId);
+            if (!loadedSession) {
+                throw new Error("Session not found.");
+            }
+            setSession(loadedSession);
 
-  const getSolverInputContract = useCallback(async (contractId) => {
-    if (!contractId) return null;
-    const db = getDb();
-    try {
-        const contractDoc = await getDoc(doc(db, "solverInputs", contractId));
-        const contractData = contractDoc.exists() ? { id: contractDoc.id, ...contractDoc.data() } : null;
-        setSolverInputContract(contractData);
-    } catch (error) {
-        console.error("Failed to get solver input contract:", error);
-        setError(error);
-    }
-  }, []);
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const sessionId = params.get('session');
-    const db = getDb(); // Get db instance here
-
-    if (sessionId) {
-        if (!session || session.id !== sessionId) {
-            setLoading(true);
-            const sessionRef = doc(db, 'sessions', sessionId);
+            const sessionArtifacts = await api.getArtifacts(sessionId);
+            setArtifacts(sessionArtifacts || {});
             
-            const unsub = onSnapshot(sessionRef, async (docSnap) => {
-                if (docSnap.exists()) {
-                    const sessionData = { id: docSnap.id, ...docSnap.data() };
-                    setSession(sessionData);
+            const stageConfig = STAGE_CONFIG[loadedSession.currentStage];
+            setCurrentStageConfig(stageConfig);
+            navigate(`${stageConfig.path}?session=${sessionId}`);
 
-                    if (sessionData.recommendationId) {
-                        api.getRecommendation(sessionData.recommendationId).then(setRecommendation);
-                    }
-                    if (sessionData.solverInputId) {
-                        getSolverInputContract(sessionData.solverInputId);
-                    }
-                    if (sessionData.latestExecutionId) {
-                        getExecution(sessionData.latestExecutionId);
-                    } else {
-                      setExecution(null);
-                    }
-
-                } else {
-                    setError(new Error("Session not found"));
-                    resetState();
-                    navigate('/');
-                }
-                setLoading(false);
-            }, (err) => {
-                console.error("Error listening to session:", err);
-                setError(err);
-                resetState();
-                navigate('/');
-            });
-
-            return () => unsub();
+        } catch (err) {
+            setError(new Error(`Failed to load session ${sessionId}: ${err.message}`));
+            navigate('/');
+        } finally {
+            setLoading(false);
         }
-    } else {
-        resetState();
-    }
-  }, [location.search, navigate, resetState, getExecution, getSolverInputContract, session]);
+    }, [navigate]);
+
+    useEffect(() => {
+        fetchHistory();
+        
+        const params = new URLSearchParams(window.location.search);
+        const sessionId = params.get('session');
+        
+        if (sessionId && (!session || session.id !== sessionId)) {
+            loadSession(sessionId);
+        } else {
+            setLoading(false);
+        }
+    }, [loadSession, fetchHistory]); // Removed session dependency to avoid re-running on session state change
+
+    // Handles session updates and navigation
+    const handleSessionUpdate = useCallback((updatedSession) => {
+        setSession(updatedSession);
+        const stageConfig = STAGE_CONFIG[updatedSession.currentStage];
+        const currentPath = window.location.pathname;
+
+        if (stageConfig && stageConfig.path !== currentPath) {
+            navigate(`${stageConfig.path}?session=${updatedSession.id}`);
+        }
+    }, [navigate]);
+
+    const startNewSession = async (goal) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const newSession = await api.createSession(goal);
+            setSession(newSession);
+            setArtifacts({});
+            await fetchHistory();
+            
+            const stageConfig = STAGE_CONFIG[newSession.currentStage];
+            setCurrentStageConfig(stageConfig);
+            navigate(`${stageConfig.path}?session=${newSession.id}`);
+        } catch (err) {
+            setError(new Error(`Failed to start new session: ${err.message}`));
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const updateSession = async (sessionId, targetStage, payload = {}) => {
+        setLoading(true);
+        try {
+            const updatedSession = await api.updateSession(sessionId, targetStage, payload);
+            setSession(updatedSession);
+            // Reload artifacts as they might have changed
+            const sessionArtifacts = await api.getArtifacts(sessionId);
+            setArtifacts(sessionArtifacts || {});
+
+            const stageConfig = STAGE_CONFIG[updatedSession.currentStage];
+            setCurrentStageConfig(stageConfig);
+
+            if (stageConfig.path !== window.location.pathname) {
+                navigate(`${stageConfig.path}?session=${sessionId}`);
+            }
+        } catch (err) {
+            setError(new Error(`Failed to update session: ${err.message}`));
+        } finally {
+            setLoading(false);
+        }
+    };
 
 
-  const startNewSession = useCallback(async (goal) => {
-    if (!goal) return;
-    setLoading(true);
-    try {
-        const { sessionId } = await api.createSession({ goal });
-        navigate(`/data-preparation?session=${sessionId}`);
-    } catch (error) {
-        console.error("Error starting new session:", error);
-        setError(error);
-    } finally {
-        setLoading(false);
-    }
-  }, [navigate]);
+    const contextValue = {
+        session,
+        artifacts,
+        loading,
+        error,
+        history,
+        startNewSession,
+        loadSession,
+        updateSession,
+        currentStageConfig,
+    };
 
-  const generateRecommendation = useCallback(async (sessionId) => {
-    if (!sessionId) return;
-    try {
-      const rec = await api.generateRecommendation(sessionId);
-      setRecommendation(rec);
-      setSession(prev => ({...prev, status: 'analyzed', currentStage: 'method'}));
-      return rec;
-    } catch (error) {
-      console.error("Error generating recommendation:", error);
-      setError(error);
-      throw error;
-    }
-  }, []);
-
-  const prepareSolverInput = useCallback(async (sessionId) => {
-      if (!sessionId) return;
-      setLoading(true);
-      try {
-          const { solverInputId } = await api.prepareSolverInput(sessionId);
-          if (solverInputId) {
-              await getSolverInputContract(solverInputId);
-          }
-          return solverInputId;
-      } catch (error) {
-          console.error("Error preparing solver input:", error);
-          setError(error);
-          throw error;
-      } finally {
-          setLoading(false);
-      }
-  }, [getSolverInputContract]);
-
-  const executeSolver = useCallback(async (sessionId, solverInputId) => {
-      if (!sessionId || !solverInputId) return;
-      setLoading(true);
-      try {
-          const { executionId } = await api.executeSolver(sessionId, solverInputId);
-          if (executionId) {
-              await getExecution(executionId);
-              navigate(`/results?session=${sessionId}`);
-          }
-          return executionId;
-      } catch (error) {
-          console.error("Error executing solver:", error);
-          setError(error);
-          throw error;
-      } finally {
-          setLoading(false);
-      }
-  }, [getExecution, navigate]);
-
-
-  const setActiveSession = useCallback((sessionId) => {
-      navigate(`?session=${sessionId}`);
-  }, [navigate]);
-
-  const value = {
-    session,
-    solvers,
-    loading,
-    error,
-    startNewSession,
-    setActiveSession, 
-    recommendation,
-    generateRecommendation,
-    solverInputContract,
-    prepareSolverInput,
-    executeSolver,
-    execution,
-    result,
-  };
-
-  return (
-    <SessionContext.Provider value={value}>
-      {children}
-    </SessionContext.Provider>
-  );
+    return (
+        <SessionContext.Provider value={contextValue}>
+            {children}
+        </SessionContext.Provider>
+    );
 };
