@@ -89,7 +89,9 @@ const SessionProvider = ({ children }) => {
         currentStage: WORKFLOW_STAGES.FORMULATE_PROBLEM,
       };
       await setDoc(newSessionRef, newSession);
-      navigate(`${STAGE_CONFIG.formulate_problem.path}?session=${newSessionRef.id}`);
+      // CORRECTED: Use bracket notation to access the path property
+      const initialPath = STAGE_CONFIG[WORKFLOW_STAGES.FORMULATE_PROBLEM].path;
+      navigate(`${initialPath}?session=${newSessionRef.id}`);
     } catch (err) {
       console.error("Error creating new session:", err);
       setError(err);
