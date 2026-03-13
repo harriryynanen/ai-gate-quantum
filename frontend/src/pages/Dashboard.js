@@ -103,6 +103,8 @@ const Dashboard = () => {
     </div>
   );
 
+  const safeHistory = Array.isArray(history) ? history : [];
+
   return (
     <div className="bg-gray-50 min-h-full">
       <div className="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -140,7 +142,7 @@ const Dashboard = () => {
           {/* Recent Sessions */}
           <div>
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Recent Sessions</h2>
-            {contextLoading && !history.length ? (
+            {contextLoading && safeHistory.length === 0 ? (
               <LoadingSpinner text="Loading recent sessions..." />
             ) : contextError ? (
               <div className="text-center text-red-600 bg-red-50 p-8 rounded-lg shadow-sm border border-red-200">
@@ -148,9 +150,9 @@ const Dashboard = () => {
                 <p className="font-semibold">Error Loading History</p>
                 <p className="text-sm">{contextError.message}</p>
               </div>
-            ) : history.length > 0 ? (
+            ) : safeHistory.length > 0 ? (
               <div className="space-y-6">
-                {history.map((session) => <SessionCard key={session.id} session={session} />)}
+                {safeHistory.map((session) => <SessionCard key={session.id} session={session} />)}
               </div>
             ) : (
               <div className="text-center text-gray-500 bg-white p-10 rounded-lg shadow-sm border border-gray-200">
