@@ -1,42 +1,32 @@
 
-import React, { Suspense, lazy } from 'react';
+import React from 'react';
+import ClassicalBaselineResultsView from './solver-views/ClassicalBaselineResultsView';
+import QuantumInspiredAnnealingResultsView from './solver-views/QuantumInspiredAnnealingResultsView';
+import QAOACandidateResultsView from './solver-views/QAOACandidateResultsView';
+import GenericTransparencyView from './solver-views/GenericTransparencyView';
 
-const GenericResultsView = lazy(() => import('./renderers/GenericResultsView'));
-const ClassicalBaselineResultsView = lazy(() => import('./renderers/ClassicalBaselineResultsView'));
-const QuantumInspiredAnnealingResultsView = lazy(() => import('./renderers/QuantumInspiredAnnealingResultsView'));
-const QAOACandidateResultsView = lazy(() => import('./renderers/QAOACandidateResultsView'));
-
-const solverMap = {
-  'classical-baseline': ClassicalBaselineResultsView,
-  'quantum-inspired-annealing': QuantumInspiredAnnealingResultsView,
-  'qaoa-candidate-search': QAOACandidateResultsView,
+const solverComponentMap = {
+  classical_baseline: ClassicalBaselineResultsView,
+  quantum_inspired_annealing: QuantumInspiredAnnealingResultsView,
+  qaoa_candidate: QAOACandidateResultsView,
 };
 
-const LoadingFallback = () => (
-    <div className="bg-white shadow-lg rounded-lg p-6 animate-pulse">
-        <div className="h-8 bg-gray-200 rounded w-1/2 mb-6"></div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="h-20 bg-gray-200 rounded-lg"></div>
-            <div className="h-20 bg-gray-200 rounded-lg"></div>
-            <div className="h-20 bg-gray-200 rounded-lg"></div>
-            <div className="h-20 bg-gray-200 rounded-lg"></div>
-        </div>
-    </div>
-);
-
 const SolverResultsRenderer = ({ execution }) => {
-    if (!execution || !execution.resultsSummary) {
-        return <LoadingFallback />;
-    }
+  if (!execution || !execution.solverId) {
+    return <GenericTransparencyView execution={execution} />;
+  }
 
-    const solverId = execution.config?.solverId;
-    const ResultsComponent = solverMap[solverId] || GenericResultsView;
+  const SolverComponent = solverComponentMap[execution.solverId];
 
-    return (
-        <Suspense fallback={<LoadingFallback />}>
-            <ResultsComponent results={execution.resultsSummary} />
-        </Suspense>
-    );
+  if (!SolverComponent) {
+    return <GenericTransparencyView execution={execution} />;
+  }
+
+  // The result payload is now expected to be nested under the execution object.
+  // This structure needs to be confirmed with the backend implementation.
+  const results = execution.results; 
+
+  return <SolverComponent results={results?.solverSpecificResults} execution={execution} />;
 };
 
 export default SolverResultsRenderer;

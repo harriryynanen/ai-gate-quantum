@@ -8,7 +8,6 @@ import JobConfiguration from './pages/JobConfiguration.js';
 import Execution from './pages/Execution.js';
 import Results from './pages/Results.js';
 import History from './pages/History.js';
-import LoginPage from './pages/LoginPage.js';
 import { SessionProvider } from './context/SessionContext.js';
 import MainLayout from './layouts/MainLayout.js';
 // import ProtectedRoute from './components/common/ProtectedRoute'; // Not used for now
@@ -19,7 +18,6 @@ const App = () => {
     <Router>
       <SessionProvider>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
           <Route 
             path="/*" 
             element={

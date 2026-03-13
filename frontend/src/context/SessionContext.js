@@ -1,13 +1,22 @@
 
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { api } from '../services/api';
 import { onSnapshot, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { solvers as solverCatalog } from '../solverCatalog/solverDefinitions.js';
+import { api } from '../services/api';
 
 /**
- * @typedef {any} Session
+ * @typedef {import('../solverCatalog/solverTypes').Solver} Solver
+ */
+
+/**
+ * @typedef {object} Session
+ * @property {string} id
+ * @property {string} [recommendationId]
+ * @property {string} [solverInputId]
+ * @property {string} [executionId]
+ * @property {string} [resultId]
  */
 
 /**
@@ -32,9 +41,11 @@ import { solvers as solverCatalog } from '../solverCatalog/solverDefinitions.js'
 /**
  * @typedef {object} SessionContextValue
  * @property {Session | null} session
- * @property {import('../solverCatalog/solverTypes').Solver[]} solvers
+ * @property {Solver[]} solvers
  * @property {boolean} loading
+ * @property {Error | null} error
  * @property {(goal: string) => Promise<void>} startNewSession
+ * @property {() => void} setActiveSession
  * @property {Recommendation | null} recommendation
  * @property {(sessionId: string) => Promise<any>} generateRecommendation
  * @property {SolverInputContract | null} solverInputContract
@@ -43,13 +54,13 @@ import { solvers as solverCatalog } from '../solverCatalog/solverDefinitions.js'
  * @property {Result | null} result
  */
 
-const API_MODE = process.env.REACT_APP_API_MODE || 'firebase';
-
 export const SessionContext = createContext(/** @type {SessionContextValue} */ ({
     session: null,
     solvers: [],
     loading: true,
+    error: null,
     startNewSession: async () => {},
+    setActiveSession: () => {},
     recommendation: null,
     generateRecommendation: async () => {},
     solverInputContract: null,
@@ -63,8 +74,9 @@ export const SessionContext = createContext(/** @type {SessionContextValue} */ (
  */
 export const SessionProvider = ({ children }) => {
   const [session, setSession] = useState(/** @type {Session | null} */ (null));
-  const [solvers, setSolvers] = useState(solverCatalog);
+  const [solvers] = useState(solverCatalog);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [recommendation, setRecommendation] = useState(/** @type {Recommendation | null} */ (null));
   const [solverInputContract, setSolverInputContract] = useState(/** @type {SolverInputContract | null} */ (null));
   const [execution, setExecution] = useState(/** @type {Execution | null} */ (null));
@@ -79,6 +91,23 @@ export const SessionProvider = ({ children }) => {
     setExecution(null);
     setResult(null);
     setLoading(false);
+    setError(null);
+  }, []);
+
+  const getExecution = useCallback(async (executionId) => {
+    if (!executionId) return null;
+    try {
+        const executionDoc = await getDoc(doc(db, "executions", executionId));
+        const executionData = executionDoc.exists() ? { id: executionDoc.id, ...executionDoc.data() } : null;
+        setExecution(executionData);
+        // If execution has a resultId, hydrate it.
+        if (executionData?.resultId) {
+            await getResult(executionData.resultId);
+        }
+    } catch (error) {
+        console.error("Failed to get execution:", error);
+        setError(error);
+    }
   }, []);
 
   const getResult = useCallback(async (resultId) => {
@@ -89,6 +118,7 @@ export const SessionProvider = ({ children }) => {
         setResult(resultData);
     } catch (error) {
         console.error("Failed to get result:", error);
+        setError(error);
     }
   }, []);
 
@@ -100,10 +130,11 @@ export const SessionProvider = ({ children }) => {
         setSolverInputContract(contractData);
     } catch (error) {
         console.error("Failed to get solver input contract:", error);
+        setError(error);
     }
   }, []);
 
-  // Effect to load session and related data from URL
+  // Load session and related data from URL or session state
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const sessionId = params.get('session');
@@ -111,63 +142,56 @@ export const SessionProvider = ({ children }) => {
     if (sessionId) {
         if (!session || session.id !== sessionId) {
             setLoading(true);
-            api.getSession(sessionId)
-                .then(sessionData => {
-                    if (sessionData) {
-                      setSession({ id: sessionId, ...sessionData });
-                      if (sessionData.recommendationId) {
-                          api.getRecommendation(sessionData.recommendationId).then(setRecommendation);
-                      }
-                      if (sessionData.solverInputId) {
-                          getSolverInputContract(sessionData.solverInputId);
-                      }
-                      if (sessionData.resultId) {
-                          getResult(sessionData.resultId);
-                      }
-                    } else {
-                        throw new Error("Session not found");
+            const sessionRef = doc(db, 'sessions', sessionId);
+            
+            const unsub = onSnapshot(sessionRef, async (docSnap) => {
+                if (docSnap.exists()) {
+                    const sessionData = { id: docSnap.id, ...docSnap.data() };
+                    setSession(sessionData);
+
+                    // Hydrate related documents
+                    if (sessionData.recommendationId) {
+                        api.getRecommendation(sessionData.recommendationId).then(setRecommendation);
                     }
-                })
-                .catch(err => {
-                    console.error("Failed to load session:", err);
+                    if (sessionData.solverInputId) {
+                        getSolverInputContract(sessionData.solverInputId);
+                    }
+                    if (sessionData.executionId) {
+                        getExecution(sessionData.executionId);
+                    } else {
+                      setExecution(null); // Clear if no longer linked
+                    }
+
+                } else {
+                    setError(new Error("Session not found"));
                     resetState();
                     navigate('/');
-                })
-                .finally(() => setLoading(false));
+                }
+                setLoading(false);
+            }, (err) => {
+                console.error("Error listening to session:", err);
+                setError(err);
+                resetState();
+                navigate('/');
+            });
+
+            return () => unsub();
         }
     } else {
         resetState();
     }
-  }, [location.search, navigate, resetState, getResult, getSolverInputContract, session]);
+  }, [location.search, navigate, resetState, getExecution, getSolverInputContract, session]);
 
-  // Real-time listener for the session document
-  useEffect(() => {
-    if (!session?.id || API_MODE !== 'firebase') return;
-
-    const unsubscribe = onSnapshot(doc(db, "sessions", session.id), (doc) => {
-      if (doc.exists()) {
-        const sessionData = doc.data();
-        setSession(prev => ({ ...prev, ...sessionData }));
-
-        if (sessionData.solverInputId && (!solverInputContract || solverInputContract.id !== sessionData.solverInputId)) {
-            getSolverInputContract(sessionData.solverInputId);
-        }
-        if (sessionData.resultId && (!result || result.id !== sessionData.resultId)) {
-          getResult(sessionData.resultId);
-        }
-      }
-    });
-    return () => unsubscribe();
-  }, [session?.id, getResult, result, solverInputContract, getSolverInputContract]);
 
   const startNewSession = useCallback(async (goal) => {
     if (!goal) return;
     setLoading(true);
     try {
         const { sessionId } = await api.createSession({ goal });
-        navigate(`/job-configuration?session=${sessionId}`);
+        navigate(`/data-preparation?session=${sessionId}`);
     } catch (error) {
         console.error("Error starting new session:", error);
+        setError(error);
     } finally {
         setLoading(false);
     }
@@ -182,6 +206,7 @@ export const SessionProvider = ({ children }) => {
       return rec;
     } catch (error) {
       console.error("Error generating recommendation:", error);
+      setError(error);
       throw error;
     }
   }, []);
@@ -197,23 +222,30 @@ export const SessionProvider = ({ children }) => {
           return solverInputId;
       } catch (error) {
           console.error("Error preparing solver input:", error);
+          setError(error);
           throw error;
       } finally {
           setLoading(false);
       }
   }, [getSolverInputContract]);
 
+  const setActiveSession = useCallback((sessionId) => {
+      navigate(`?session=${sessionId}`);
+  }, [navigate]);
+
   const value = {
     session,
     solvers,
     loading,
+    error,
     startNewSession,
+    setActiveSession, 
     recommendation,
     generateRecommendation,
     solverInputContract,
     prepareSolverInput,
     execution,
-    result
+    result,
   };
 
   return (
