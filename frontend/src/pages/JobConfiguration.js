@@ -16,7 +16,8 @@ function JobConfiguration() {
     loading, 
     solvers, 
     solverInputContract,
-    prepareSolverInput 
+    prepareSolverInput, 
+    executeSolver 
   } = useContext(SessionContext);
   
   const [error, setError] = useState('');
@@ -45,11 +46,14 @@ function JobConfiguration() {
     }
   };
   
-  const handleProceedToExecution = () => {
+  const handleExecuteSolver = async () => {
     if (session && solverInputContract) {
-      // This navigation will be updated when the execution page is built out
-      // For now, it can navigate to a placeholder or the existing execution page
-      navigate(`/execution?session=${session.id}`);
+      try {
+        await executeSolver(session.id, solverInputContract.id);
+      } catch (err) {
+        console.error("Error executing solver:", err);
+        setError("Failed to start execution. See console for details.");
+      }
     }
   };
 
@@ -117,7 +121,7 @@ function JobConfiguration() {
             <div className="mt-8 text-center">
               {solverInputContract.readinessStatus === 'ready' ? (
                 <button 
-                  onClick={handleProceedToExecution}
+                  onClick={handleExecuteSolver}
                   className="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition duration-300 ease-in-out shadow-md flex items-center justify-center mx-auto"
                 >
                   Proceed to Execution Setup

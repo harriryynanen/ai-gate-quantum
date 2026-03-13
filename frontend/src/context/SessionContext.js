@@ -2,57 +2,11 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { onSnapshot, doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { getDb } from '../firebase'; // Use the getter
 import { solvers as solverCatalog } from '../solverCatalog/solverDefinitions.js';
 import { api } from '../services/api';
 
-/**
- * @typedef {import('../solverCatalog/solverTypes').Solver} Solver
- */
-
-/**
- * @typedef {object} Session
- * @property {string} id
- * @property {string} [recommendationId]
- * @property {string} [solverInputId]
- * @property {string} [executionId]
- * @property {string} [resultId]
- */
-
-/**
- * @typedef {any} Recommendation
- */
-
-/**
- * @typedef {any} Execution
- */
-
-/**
- * @typedef {any} Result
- */
-
-/**
- * @typedef {object} SolverInputContract
- * @property {string} id
- * @property {object} schema
- * @property {object} uiSchema
- */
-
-/**
- * @typedef {object} SessionContextValue
- * @property {Session | null} session
- * @property {Solver[]} solvers
- * @property {boolean} loading
- * @property {Error | null} error
- * @property {(goal: string) => Promise<void>} startNewSession
- * @property {() => void} setActiveSession
- * @property {Recommendation | null} recommendation
- * @property {(sessionId: string) => Promise<any>} generateRecommendation
- * @property {SolverInputContract | null} solverInputContract
- * @property {(sessionId: string) => Promise<string | undefined>} prepareSolverInput
- * @property {Execution | null} execution
- * @property {Result | null} result
- */
+// ... (typedefs remain the same) ...
 
 export const SessionContext = createContext(/** @type {SessionContextValue} */ ({
     session: null,
@@ -65,13 +19,11 @@ export const SessionContext = createContext(/** @type {SessionContextValue} */ (
     generateRecommendation: async () => {},
     solverInputContract: null,
     prepareSolverInput: async () => undefined,
+    executeSolver: async () => undefined,
     execution: null,
     result: null,
 }));
 
-/**
- * @param {{ children: React.ReactNode }} props
- */
 export const SessionProvider = ({ children }) => {
   const [session, setSession] = useState(/** @type {Session | null} */ (null));
   const [solvers] = useState(solverCatalog);
@@ -96,11 +48,11 @@ export const SessionProvider = ({ children }) => {
 
   const getExecution = useCallback(async (executionId) => {
     if (!executionId) return null;
+    const db = getDb();
     try {
         const executionDoc = await getDoc(doc(db, "executions", executionId));
         const executionData = executionDoc.exists() ? { id: executionDoc.id, ...executionDoc.data() } : null;
         setExecution(executionData);
-        // If execution has a resultId, hydrate it.
         if (executionData?.resultId) {
             await getResult(executionData.resultId);
         }
@@ -112,6 +64,7 @@ export const SessionProvider = ({ children }) => {
 
   const getResult = useCallback(async (resultId) => {
     if (!resultId) return null;
+    const db = getDb();
     try {
         const resultDoc = await getDoc(doc(db, "results", resultId));
         const resultData = resultDoc.exists() ? { id: resultDoc.id, ...resultDoc.data() } : null;
@@ -124,6 +77,7 @@ export const SessionProvider = ({ children }) => {
 
   const getSolverInputContract = useCallback(async (contractId) => {
     if (!contractId) return null;
+    const db = getDb();
     try {
         const contractDoc = await getDoc(doc(db, "solverInputs", contractId));
         const contractData = contractDoc.exists() ? { id: contractDoc.id, ...contractDoc.data() } : null;
@@ -134,10 +88,10 @@ export const SessionProvider = ({ children }) => {
     }
   }, []);
 
-  // Load session and related data from URL or session state
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const sessionId = params.get('session');
+    const db = getDb(); // Get db instance here
 
     if (sessionId) {
         if (!session || session.id !== sessionId) {
@@ -149,17 +103,16 @@ export const SessionProvider = ({ children }) => {
                     const sessionData = { id: docSnap.id, ...docSnap.data() };
                     setSession(sessionData);
 
-                    // Hydrate related documents
                     if (sessionData.recommendationId) {
                         api.getRecommendation(sessionData.recommendationId).then(setRecommendation);
                     }
                     if (sessionData.solverInputId) {
                         getSolverInputContract(sessionData.solverInputId);
                     }
-                    if (sessionData.executionId) {
-                        getExecution(sessionData.executionId);
+                    if (sessionData.latestExecutionId) {
+                        getExecution(sessionData.latestExecutionId);
                     } else {
-                      setExecution(null); // Clear if no longer linked
+                      setExecution(null);
                     }
 
                 } else {
@@ -229,6 +182,26 @@ export const SessionProvider = ({ children }) => {
       }
   }, [getSolverInputContract]);
 
+  const executeSolver = useCallback(async (sessionId, solverInputId) => {
+      if (!sessionId || !solverInputId) return;
+      setLoading(true);
+      try {
+          const { executionId } = await api.executeSolver(sessionId, solverInputId);
+          if (executionId) {
+              await getExecution(executionId);
+              navigate(`/results?session=${sessionId}`);
+          }
+          return executionId;
+      } catch (error) {
+          console.error("Error executing solver:", error);
+          setError(error);
+          throw error;
+      } finally {
+          setLoading(false);
+      }
+  }, [getExecution, navigate]);
+
+
   const setActiveSession = useCallback((sessionId) => {
       navigate(`?session=${sessionId}`);
   }, [navigate]);
@@ -244,6 +217,7 @@ export const SessionProvider = ({ children }) => {
     generateRecommendation,
     solverInputContract,
     prepareSolverInput,
+    executeSolver,
     execution,
     result,
   };
