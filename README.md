@@ -94,3 +94,4 @@ Jos jokin asia ei ole määritelty, tarkista ensin:
 - `05_ui/ui_master_spec.md`
 
 Jos ristiriitaa syntyy, nämä tiedostot ohittavat muut yleiset tulkinnat.
+00
