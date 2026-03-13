@@ -25,11 +25,15 @@ const getDocument = async (collectionName, docId) => {
 
 const firebaseApi = {
     // --- Session Management ---
-    createSession: async (sessionData) => {
+    createSession: async ({ goal }) => {
+        if (!goal || typeof goal !== 'string' || goal.trim() === '') {
+            throw new Error('A non-empty goal string is required to create a session.');
+        }
         const db = getDb();
         const sessionRef = await addDoc(collection(db, "sessions"), {
-            ...sessionData,
+            goal: goal,
             createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
             currentStage: 'problem_formulation', // Start at the first stage
         });
         const newSession = await getDoc(sessionRef);

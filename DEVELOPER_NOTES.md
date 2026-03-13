@@ -1,39 +1,35 @@
+# Developer Notes
 
-# Developer Notes: Running the Application
+## Repository Safety: Managing Environment Variables
 
-This document outlines the different running modes for the application to streamline the development process.
+To ensure the security of the project, it is crucial to handle environment variables correctly. This prevents sensitive information, such as API keys, from being accidentally committed to the Git repository.
 
-## Development Modes
+### Key Principles
 
-The application can run in two modes: `mock` and `backend`. The mode is controlled by the `REACT_APP_API_MODE` environment variable in the frontend, as defined in `frontend/src/services/api.js`.
+- **`.env` is for local development only:** This file contains your personal Firebase configuration and other sensitive keys. It is **never** tracked in the Git repository.
+- **`.env.example` is tracked:** This file serves as a template for other developers. It should list all the necessary environment variables but without their actual values.
+- **Verify `.env` is not tracked:** Before committing, always check that your local `.env` file is not being tracked by Git. You can do this by running the following command:
+  ```sh
+  git status
+  ```
+  If `.env` appears in the output, it has been accidentally tracked and needs to be removed.
 
-### 1. Mock Mode (Default)
+### How to Remove a Tracked `.env` File
 
-This is the **default and primary mode** for all routine UI development and testing at this stage of the project.
+If you have accidentally committed an `.env` file, you must remove it from Git's tracking history. Follow these steps to do so:
 
-- **How it works:** The frontend uses a built-in mock data layer (`frontend/src/mocks/`) that intercepts API calls and returns realistic, predefined data structures. It **does not** require the Python backend to be running.
+1.  **Remove the file from the index:**
 
-- **When to use it:**
-  - All general UI development and testing.
-  - Working on frontend application flow, component logic, and state management.
-  - When you need to work offline or cannot run a local Python environment.
+    ```sh
+    git rm --cached .env
+    ```
 
-- **Why it's the default:** It provides a frictionless development experience. It allows developers to work on the user interface and application flow without the overhead of setting up and managing a local Python virtual environment and running the backend server. This accelerates UI iteration and keeps the focus on user experience, which is the priority for this phase of the project.
+2.  **Commit the change:**
 
-### 2. Backend Mode
+    ```sh
+    git commit -m "chore: Stop tracking .env file"
+    ```
 
-This mode is for periodic end-to-end integration testing to ensure the frontend and backend can still communicate correctly.
+3.  **Update `.gitignore`:** Ensure that `.env` is listed in your `.gitignore` file to prevent it from being tracked in the future.
 
-- **How it works:** The frontend makes real API calls to a running FastAPI server, which is expected to be available at `http://localhost:8000`.
-
-- **When to use it:**
-  - Periodically, to test the full end-to-end workflow from the UI to the live backend logic.
-  - To verify that the API contracts (request/response shapes) between the frontend and backend have not diverged.
-  - As a final check before preparing the backend for deployment to a cloud environment like Google Cloud Run.
-
-- **How to enable it:**
-    1. Open the `frontend/src/services/api.js` file.
-    2. Change the `API_MODE` constant from `'mock'` to `'backend'`.
-    3. Start the backend server locally by following the necessary Python environment setup and startup commands.
-
-By keeping `mock` as the default, we ensure the project remains easy to set up and run for anyone focused on the frontend user experience.
+By following these guidelines, you can help maintain the security and integrity of the repository.

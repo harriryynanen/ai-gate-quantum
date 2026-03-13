@@ -175,6 +175,8 @@ function DataPreparation() {
     updateSession
   } = useContext(SessionContext);
 
+  const stage = currentStageConfig || STAGE_CONFIG.problem_formulation;
+
   const workflowStages = Object.keys(STAGE_CONFIG).map(key => ({
       key,
       ...STAGE_CONFIG[key]
@@ -203,10 +205,10 @@ function DataPreparation() {
 
   return (
     <WorkflowLayout 
-      title={currentStageConfig?.name || 'Problem Formulation'}
-      description={currentStageConfig?.description || 'Define your problem and let the AI recommend the best path forward.'}
+      title={stage.name}
+      description={stage.description}
       guidance={renderGuidance()}
-      stage={currentStageConfig}
+      stage={stage}
       session={session}
       workflowStages={workflowStages}
     >
