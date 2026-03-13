@@ -30,23 +30,50 @@ const firebaseApi = {
         const sessionRef = await addDoc(collection(db, "sessions"), {
             ...sessionData,
             createdAt: serverTimestamp(),
+            currentStage: 'problem_formulation', // Start at the first stage
         });
-        return { sessionId: sessionRef.id };
+        const newSession = await getDoc(sessionRef);
+        return { id: newSession.id, ...newSession.data() };
     },
 
     updateSession: async (sessionId, data) => {
         const db = getDb();
         const sessionRef = doc(db, 'sessions', sessionId);
-        return await updateDoc(sessionRef, data);
+        await updateDoc(sessionRef, {
+            ...data,
+            updatedAt: serverTimestamp(),
+        });
+        const updatedSession = await getDoc(sessionRef);
+        return { id: updatedSession.id, ...updatedSession.data() };
     },
 
-    // --- Artifact Fetching ---
     getSession: (sessionId) => getDocument("sessions", sessionId),
-    getFormulation: (formulationId) => getDocument("formulations", formulationId),
-    getRecommendation: (recommendationId) => getDocument("recommendations", recommendationId),
-    getSolverInput: (solverInputId) => getDocument("solverInputs", solverInputId),
-    getExecution: (executionId) => getDocument("executions", executionId),
-    getResult: (resultId) => getDocument("results", resultId),
+
+    // --- Artifact Fetching ---
+    getArtifacts: async (sessionId) => {
+        if (!sessionId) return {};
+        const session = await getDocument("sessions", sessionId);
+        if (!session) return {};
+
+        const artifactIds = {
+            formulation: session.formulationId,
+            recommendation: session.recommendationId,
+            solverInput: session.solverInputId,
+            execution: session.executionId,
+            result: session.resultId,
+        };
+
+        const artifactPromises = Object.entries(artifactIds).map(async ([key, id]) => {
+            if (!id) return [key, null];
+            // The key of the artifact tells us the collection name (e.g., 'formulation' -> 'formulations')
+            const collectionName = `${key}s`; 
+            const artifact = await getDocument(collectionName, id);
+            return [key, artifact];
+        });
+        
+        const artifacts = Object.fromEntries(await Promise.all(artifactPromises));
+        return artifacts;
+    },
 
     // --- History ---
     getHistory: async () => {
@@ -57,6 +84,7 @@ const firebaseApi = {
     },
 
     // --- Callable Functions (for backend operations) ---
+    // These remain unchanged as they are for backend logic which is out of scope for this step.
     generateRecommendation: async (sessionId) => {
         const functions = getFunctionsService();
         const generateRecommendationFn = httpsCallable(functions, 'generateRecommendation');
@@ -68,14 +96,14 @@ const firebaseApi = {
         const functions = getFunctionsService();
         const prepareFunction = httpsCallable(functions, 'prepareSolverInput');
         const response = await prepareFunction({ sessionId });
-        return response.data; // Expects { solverInputId: string }
+        return response.data;
     },
 
     executeSolver: async (sessionId, solverInputId) => {
         const functions = getFunctionsService();
         const executeSolverFn = httpsCallable(functions, 'executeSolver');
         const result = await executeSolverFn({ sessionId, solverInputId });
-        return result.data; // Expects { executionId: string }
+        return result.data;
     },
 };
 

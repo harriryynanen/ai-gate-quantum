@@ -1,10 +1,10 @@
 
 import React, { createContext, useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../services/api';
 import { WORKFLOW_STAGES, STAGE_CONFIG } from '../workflow/stages';
 
-// Create a context with a default shape to avoid destructuring errors on initial render
+// Create a context with a default shape
 export const SessionContext = createContext({
   session: null,
   artifacts: {},
@@ -21,11 +21,12 @@ export const SessionProvider = ({ children }) => {
     const [session, setSession] = useState(null);
     const [artifacts, setArtifacts] = useState({});
     const [history, setHistory] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [currentStageConfig, setCurrentStageConfig] = useState(null);
 
     const navigate = useNavigate();
+    const location = useLocation();
 
     const fetchHistory = useCallback(async () => {
         try {
@@ -36,7 +37,20 @@ export const SessionProvider = ({ children }) => {
         }
     }, []);
 
+    const navigateToStage = useCallback((stage, sessionId) => {
+        const stageConfig = STAGE_CONFIG[stage];
+        const targetPath = `${stageConfig.path}?session=${sessionId}`;
+        if (window.location.pathname + window.location.search !== targetPath) {
+            navigate(targetPath);
+        }
+    }, [navigate]);
+
     const loadSession = useCallback(async (sessionId) => {
+        if (!sessionId) {
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         setError(null);
         try {
@@ -45,61 +59,54 @@ export const SessionProvider = ({ children }) => {
                 throw new Error("Session not found.");
             }
             setSession(loadedSession);
-
+            
             const sessionArtifacts = await api.getArtifacts(sessionId);
             setArtifacts(sessionArtifacts || {});
             
             const stageConfig = STAGE_CONFIG[loadedSession.currentStage];
             setCurrentStageConfig(stageConfig);
-            navigate(`${stageConfig.path}?session=${sessionId}`);
+            navigateToStage(loadedSession.currentStage, sessionId);
 
         } catch (err) {
             setError(new Error(`Failed to load session ${sessionId}: ${err.message}`));
-            navigate('/');
+            navigate('/'); // Redirect to dashboard on error
         } finally {
             setLoading(false);
         }
-    }, [navigate]);
+    }, [navigate, navigateToStage]);
 
+    // Effect to handle initial session loading from URL
     useEffect(() => {
-        fetchHistory();
-        
-        const params = new URLSearchParams(window.location.search);
+        const params = new URLSearchParams(location.search);
         const sessionId = params.get('session');
-        
         if (sessionId && (!session || session.id !== sessionId)) {
             loadSession(sessionId);
-        } else {
-            setLoading(false);
+        } else if (!sessionId) {
+            setSession(null);
+            setArtifacts({});
         }
-    }, [loadSession, fetchHistory]); // Removed session dependency to avoid re-running on session state change
-
-    // Handles session updates and navigation
-    const handleSessionUpdate = useCallback((updatedSession) => {
-        setSession(updatedSession);
-        const stageConfig = STAGE_CONFIG[updatedSession.currentStage];
-        const currentPath = window.location.pathname;
-
-        if (stageConfig && stageConfig.path !== currentPath) {
-            navigate(`${stageConfig.path}?session=${updatedSession.id}`);
-        }
-    }, [navigate]);
+        // Fetch history on initial load
+        fetchHistory();
+    }, [location.search, session, loadSession, fetchHistory]);
 
     const startNewSession = async (goal) => {
         setLoading(true);
         setError(null);
         try {
-            const newSession = await api.createSession(goal);
+            // Use the corrected contract: { goal: string }
+            const newSession = await api.createSession({ goal });
             setSession(newSession);
-            setArtifacts({});
-            await fetchHistory();
+            setArtifacts({}); // Reset artifacts for the new session
+            await fetchHistory(); // Refresh history list
             
             const stageConfig = STAGE_CONFIG[newSession.currentStage];
             setCurrentStageConfig(stageConfig);
-            navigate(`${stageConfig.path}?session=${newSession.id}`);
+            navigateToStage(newSession.currentStage, newSession.id);
+
         } catch (err) {
-            setError(new Error(`Failed to start new session: ${err.message}`));
-            throw err;
+            const newError = new Error(`Failed to start new session: ${err.message}`);
+            setError(newError);
+            throw newError;
         } finally {
             setLoading(false);
         }
@@ -107,26 +114,26 @@ export const SessionProvider = ({ children }) => {
 
     const updateSession = async (sessionId, targetStage, payload = {}) => {
         setLoading(true);
+        setError(null);
         try {
-            const updatedSession = await api.updateSession(sessionId, targetStage, payload);
+            const updateData = { ...payload, currentStage: targetStage };
+            const updatedSession = await api.updateSession(sessionId, updateData);
             setSession(updatedSession);
-            // Reload artifacts as they might have changed
+            
+            // Reload artifacts as the update may have generated new ones
             const sessionArtifacts = await api.getArtifacts(sessionId);
             setArtifacts(sessionArtifacts || {});
 
             const stageConfig = STAGE_CONFIG[updatedSession.currentStage];
             setCurrentStageConfig(stageConfig);
+            navigateToStage(updatedSession.currentStage, sessionId);
 
-            if (stageConfig.path !== window.location.pathname) {
-                navigate(`${stageConfig.path}?session=${sessionId}`);
-            }
         } catch (err) {
             setError(new Error(`Failed to update session: ${err.message}`));
         } finally {
             setLoading(false);
         }
     };
-
 
     const contextValue = {
         session,
