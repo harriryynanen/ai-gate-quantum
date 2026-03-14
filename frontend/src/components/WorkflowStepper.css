@@ -1,90 +1,65 @@
-:root {
-    --stepper-step-size: 32px;
-    --stepper-connector-height: 2px;
-    --stepper-active-color: #3b82f6;
-    --stepper-completed-color: #16a34a;
-    --stepper-upcoming-color: #e5e7eb;
-    --stepper-upcoming-text: #9ca3af;
-}
-
 .workflow-stepper {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    width: 100%;
-    padding: 24px 0;
-    margin-bottom: 32px;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 0;
+    list-style-type: none;
 }
 
 .step {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    text-align: center;
-    position: relative;
+    flex: 1;
 }
 
-.step-number {
-    height: var(--stepper-step-size);
-    width: var(--stepper-step-size);
+.step:last-child {
+    flex: 0;
+}
+
+.step-indicator {
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
+    background-color: #f3f4f6; /* Default gray */
+    border: 2px solid #d1d5db;
+    color: #6b7280;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
-    margin-bottom: 8px;
-    border: 2px solid;
-    transition: background-color 0.3s, border-color 0.3s;
+    transition: all 0.3s ease;
+}
+
+.step.active .step-indicator {
+    background-color: #3b82f6; /* Blue */
+    border-color: #3b82f6;
+    color: white;
+}
+
+.step.completed .step-indicator {
+    background-color: #16a34a; /* Green */
+    border-color: #16a34a;
+    color: white;
 }
 
 .step-label {
-    font-size: 0.9em;
+    margin-left: 12px;
     font-weight: 500;
-    transition: color 0.3s;
+    color: #6b7280;
 }
 
-/* Step Statuses */
-.step.active .step-number {
-    background-color: white;
-    color: var(--stepper-active-color);
-    border-color: var(--stepper-active-color);
-}
-
-.step.active .step-label {
-    color: var(--stepper-active-color);
-    font-weight: 700;
-}
-
-.step.completed .step-number {
-    background-color: var(--stepper-completed-color);
-    color: white;
-    border-color: var(--stepper-completed-color);
-}
-
-.step.completed .step-label {
-    color: #374151;
-}
-
-.step.upcoming .step-number {
-    background-color: var(--stepper-upcoming-color);
-    color: var(--stepper-upcoming-text);
-    border-color: var(--stepper-upcoming-color);
-}
-
-.step.upcoming .step-label {
-    color: var(--stepper-upcoming-text);
+.step.active .step-label, .step.completed .step-label {
+    color: #111827; /* Darker text */
 }
 
 .step-connector {
-    flex-grow: 1;
-    height: var(--stepper-connector-height);
-    background-color: var(--stepper-upcoming-color);
+    flex: 1;
+    height: 2px;
+    background-color: #d1d5db; /* Gray line */
     margin: 0 16px;
-    position: relative;
-    top: calc(-1 * (var(--stepper-step-size) / 2) - 8px); /* Align with the middle of the number */
 }
 
-/* Connector between two completed steps */
-.step.completed + .step-connector {
-    background-color: var(--stepper-completed-color);
+.step.completed .step-connector {
+    background-color: #16a34a; /* Green line */
 }

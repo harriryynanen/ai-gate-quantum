@@ -1,0 +1,65 @@
+.dashboard-page .dashboard-header {
+    margin-bottom: 24px;
+}
+
+.dashboard-page h1 {
+    font-size: 2em;
+    font-weight: 600;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 16px;
+    margin: 24px 0;
+}
+
+.quick-actions .action-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.quick-actions .action-button:hover {
+    background-color: #0056b3;
+}
+
+.dashboard-section {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 24px;
+    margin-top: 24px;
+}
+
+.dashboard-section h2 {
+    font-size: 1.5em;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.job-list, .activity-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.job-item, .activity-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.job-item:last-child, .activity-item:last-child {
+    border-bottom: none;
+}

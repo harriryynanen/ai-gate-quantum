@@ -1,46 +1,27 @@
 import React from 'react';
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Link
-} from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
+import AppShell from './components/AppShell';
 import Dashboard from './pages/Dashboard';
 import AIChatWorkspace from './pages/AIChatWorkspace';
 import JobConfiguration from './pages/JobConfiguration';
 import ExecutionMonitor from './pages/ExecutionMonitor';
 import ResultPage from './pages/ResultPage';
 import JobHistory from './pages/JobHistory';
-import './App.css';
+import SolverRegistry from './pages/SolverRegistry'; 
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <nav>
-          <ul>
-            <li><Link to="/">Dashboard</Link></li>
-            <li><Link to="/chat">AI Chat</Link></li>
-            {/* Link to Data Preparation removed as it is now the first step in Job Configuration */}
-            <li><Link to="/config">Configure Job</Link></li>
-            <li><Link to="/monitor">Execution Monitor</Link></li>
-            <li><Link to="/results">Result Page</Link></li>
-            <li><Link to="/history">Job History</Link></li>
-          </ul>
-        </nav>
-        <main>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/chat" element={<AIChatWorkspace />} />
-            {/* Route for Data Preparation removed */}
-            <Route path="/config" element={<JobConfiguration />} />
-            <Route path="/monitor" element={<ExecutionMonitor />} />
-            <Route path="/results" element={<ResultPage />} />
-            <Route path="/history" element={<JobHistory />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+    <Routes>
+      <Route path="/" element={<AppShell />}>
+        <Route index element={<Dashboard />} />
+        <Route path="chat" element={<AIChatWorkspace />} />
+        <Route path="config" element={<JobConfiguration />} />
+        <Route path="monitor" element={<ExecutionMonitor />} />
+        <Route path="results" element={<ResultPage />} />
+        <Route path="history" element={<JobHistory />} />
+        <Route path="solvers" element={<SolverRegistry />} />
+      </Route>
+    </Routes>
   );
 }
 

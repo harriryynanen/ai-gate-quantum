@@ -1,0 +1,65 @@
+.job-history-page {
+    padding: 24px;
+}
+
+.history-header {
+    margin-bottom: 24px;
+}
+
+.history-header h1 {
+    font-size: 2em;
+}
+
+.filters {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.filters input, .filters select {
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1em;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.history-table th, .history-table td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.history-table th {
+    background-color: #f9fafb;
+    font-weight: 600;
+}
+
+.history-table tr:last-child td {
+    border-bottom: none;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 0.9em;
+}
+
+.status-completed {
+    background-color: #d1fae5; /* Green */
+    color: #065f46;
+}
+
+.status-failed {
+    background-color: #fee2e2; /* Red */
+    color: #991b1b;
+}

@@ -1,0 +1,83 @@
+.result-page-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* 2/3 for content, 1/3 for chat */
+    gap: 24px;
+    height: calc(100vh - 100px); /* Adjust based on header height */
+}
+
+.result-content {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 24px;
+    overflow-y: auto;
+}
+
+.result-header h1 {
+    font-size: 1.8em;
+    margin-bottom: 8px;
+}
+
+.result-header p {
+    color: #6b7280;
+}
+
+.result-tabs {
+    display: flex;
+    border-bottom: 1px solid #e5e7eb;
+    margin: 24px 0;
+}
+
+.result-tabs button {
+    padding: 12px 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 1em;
+    color: #6b7280;
+    border-bottom: 2px solid transparent;
+}
+
+.result-tabs button.active {
+    color: #007bff;
+    border-bottom-color: #007bff;
+}
+
+.tab-content h3 {
+    font-size: 1.5em;
+    margin-bottom: 16px;
+}
+
+/* AI Side Panel Styles */
+.ai-side-panel {
+    display: flex;
+    flex-direction: column;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.ai-panel-header {
+    padding: 16px;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 600;
+}
+
+.ai-panel-chat-area {
+    flex-grow: 1;
+    padding: 16px;
+    overflow-y: auto;
+    font-size: 0.9em;
+}
+
+.ai-panel-input {
+    padding: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.ai-panel-input input {
+    width: calc(100% - 24px);
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+}

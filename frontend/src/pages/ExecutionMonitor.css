@@ -1,0 +1,56 @@
+.execution-monitor-page {
+    padding: 24px;
+}
+
+.monitor-header {
+    margin-bottom: 32px;
+}
+
+.monitor-header h1 {
+    font-size: 2em;
+}
+
+.status-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.status-card {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+}
+
+.status-card h3 {
+    font-size: 1.1em;
+    margin-bottom: 8px;
+    color: #6b7280;
+}
+
+.status-card p {
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.log-viewer {
+    background-color: #111827; /* Dark background for logs */
+    color: #f3f4f6;
+    font-family: monospace;
+    padding: 24px;
+    border-radius: 8px;
+    height: 400px;
+    overflow-y: auto;
+    white-space: pre-wrap; /* Wrap long lines */
+}
+
+.log-line {
+    margin-bottom: 4px;
+}
+
+.metadata-section {
+    margin-top: 32px;
+}

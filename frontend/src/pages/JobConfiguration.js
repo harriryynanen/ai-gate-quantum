@@ -1,18 +1,24 @@
 import React, { useState } from 'react';
 import WorkflowStepper from '../components/WorkflowStepper';
-import DataPreparation from './workflow/DataPreparation';
-import PathRecommendation from './workflow/PathRecommendation'; // New component
-import ChooseSolver from './workflow/ChooseSolver';
-import ValidateData from './workflow/ValidateData';
-// MapData is part of the DataPreparation flow now, so it's not a main step.
+import './JobConfiguration.css'; // New CSS for the wizard layout
+
+// Placeholder components for each step
+const FormulateProblem = () => <div>Content for Formulating Problem</div>;
+const AssessReadiness = () => <div>Content for Assessing Readiness</div>;
+const RecommendPath = () => <div>Content for Recommending Path</div>;
+const MapSolver = () => <div>Content for Mapping Solver</div>;
+const PrepareSolverInput = () => <div>Content for Preparing Solver Input</div>;
+const Execute = () => <div>Content for Executing Job</div>;
 
 const JobConfiguration = () => {
-  // Updated, more logical workflow steps
+  // Aligned with the new, coherent workflow spine
   const steps = [
-    'Data Preparation',
-    'Path Recommendation',
-    'Solver Configuration',
-    'Validate & Approve',
+    'Formulate Problem',
+    'Assess Readiness',
+    'Recommend Path',
+    'Map Solver',
+    'Prepare Solver Input',
+    'Execute',
   ];
   const [currentStep, setCurrentStep] = useState(steps[0]);
 
@@ -32,22 +38,30 @@ const JobConfiguration = () => {
 
   const renderCurrentStep = () => {
     switch (currentStep) {
-      case 'Data Preparation':
-        return <DataPreparation />;
-      case 'Path Recommendation':
-        return <PathRecommendation />;
-      case 'Solver Configuration':
-        return <ChooseSolver />;
-      case 'Validate & Approve':
-        return <ValidateData />;
+      case 'Formulate Problem':
+        return <FormulateProblem />;
+      case 'Assess Readiness':
+        return <AssessReadiness />;
+      case 'Recommend Path':
+        return <RecommendPath />;
+      case 'Map Solver':
+        return <MapSolver />;
+      case 'Prepare Solver Input':
+        return <PrepareSolverInput />;
+      case 'Execute':
+        return <Execute />;
       default:
         return <p>Unknown step</p>;
     }
   };
 
   return (
-    <div className="job-configuration-page">
-      <h1>Configure New Job</h1>
+    <div className="job-configuration-wizard">
+      <div className="wizard-header">
+        <h1>Configure a New Analysis Job</h1>
+        <p>Follow the steps to configure and launch your job.</p>
+      </div>
+      
       <WorkflowStepper steps={steps} currentStep={currentStep} />
 
       <div className="step-content">
@@ -55,14 +69,15 @@ const JobConfiguration = () => {
       </div>
 
       <div className="navigation-buttons">
-        {currentStepIndex > 0 && (
-          <button onClick={goToPreviousStep}>Back</button>
-        )}
-        {currentStepIndex < steps.length - 1 && (
-          <button onClick={goToNextStep}>Next</button>
-        )}
-        {currentStepIndex === steps.length - 1 && (
-          <button>Finish & Run</button>
+        <button onClick={goToPreviousStep} disabled={currentStepIndex === 0}>
+          Back
+        </button>
+        {currentStepIndex < steps.length - 1 ? (
+          <button onClick={goToNextStep} className="primary">
+            Next
+          </button>
+        ) : (
+          <button className="primary">Finish & Run</button>
         )}
       </div>
     </div>

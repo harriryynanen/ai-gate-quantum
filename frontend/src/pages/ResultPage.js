@@ -1,45 +1,74 @@
-import React, { useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import ResultHeader from './results/ResultHeader';
-import ResultTabs from './results/ResultTabs';
-import SummaryTab from './results/SummaryTab';
-import TransparencyTab from './results/TransparencyTab';
-import ClassicalResultBody from './results/solver-specific/ClassicalResultBody';
-import QuantumResultBody from './results/solver-specific/QuantumResultBody';
-import { classicalResult, quantumResult } from './results/mockResults';
-import './results/Results.css';
+import React from 'react';
+import { useLocation } from 'react-router-dom';
+import './ResultPage.css'; // New CSS for the result page layout
+
+// Mock data fetching based on jobId
+const getJobResult = (jobId) => {
+  if (jobId === 'job-122') {
+    return {
+      id: 'job-122',
+      name: 'VQE Ground State',
+      summary: 'The simulation found the ground state energy for the given molecule.',
+      executionDetails: {
+        solver: 'Variational Quantum Eigensolver',
+        timestamp: '2023-10-26T14:30:00Z',
+        duration: '15m 32s',
+      },
+      results: {
+        energy: -1.137, // Example result
+        optimizer_path: [/*...data...*/]
+      },
+      raw_logs: 'Executing VQE...\nOptimizer converged after 120 iterations...\nFinal energy: -1.137 Ha'
+    };
+  }
+  return { id: 'N/A', name: 'Unknown Job', summary: '', executionDetails: {}, results: {}, raw_logs: '' };
+};
 
 const ResultPage = () => {
-  const [activeTab, setActiveTab] = useState('Summary');
-  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const jobId = params.get('jobId');
 
-  // Determine which result to display based on a URL parameter
-  // Defaults to classical. Try `?solver=quantum` in the URL.
-  const result = useMemo(() => {
-    const solverType = searchParams.get('solver');
-    return solverType === 'quantum' ? quantumResult : classicalResult;
-  }, [searchParams]);
-
-  const renderSolverOutput = () => {
-    switch (result.solverType) {
-      case 'Classical':
-        return <ClassicalResultBody result={result} />;
-      case 'Quantum':
-        return <QuantumResultBody result={result} />;
-      default:
-        return <p>This solver type does not have a specific output view.</p>;
-    }
-  };
+  const result = getJobResult(jobId);
 
   return (
-    <div className="results-page">
-      <ResultHeader result={result} />
-      <ResultTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-      
-      <div className="results-body">
-        {activeTab === 'Summary' && <SummaryTab result={result} />}
-        {activeTab === 'Solver Output' && renderSolverOutput()}
-        {activeTab === 'Transparency Report' && <TransparencyTab result={result} />}
+    <div className="result-page">
+      <div className="result-header">
+        <h1>Results for Job: {result.name}</h1>
+        <p>ID: {result.id}</p>
+      </div>
+
+      <div className="result-layout">
+        <div className="main-content">
+          <section>
+            <h2>Execution Summary</h2>
+            <p>{result.summary}</p>
+            <ul>
+              <li><strong>Solver:</strong> {result.executionDetails.solver}</li>
+              <li><strong>Completed:</strong> {new Date(result.executionDetails.timestamp).toLocaleString()}</li>
+              <li><strong>Duration:</strong> {result.executionDetails.duration}</li>
+            </ul>
+          </section>
+          
+          <section>
+            <h2>Result Data</h2>
+            <pre>{JSON.stringify(result.results, null, 2)}</pre>
+          </section>
+        </div>
+
+        <div className="side-panel">
+          <section>
+            <h2>Logs</h2>
+            <pre className="logs">{result.raw_logs}</pre>
+          </section>
+
+          <section>
+            <h2>AI Interpretation</h2>
+            <div className="ai-interpretation">
+              <p>The VQE algorithm successfully converged, indicating a stable ground state was found. The final energy of -1.137 Ha is consistent with theoretical predictions for this molecular configuration.</p>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   );

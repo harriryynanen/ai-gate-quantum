@@ -1,0 +1,78 @@
+.solver-registry {
+    padding: 24px;
+}
+
+.registry-header {
+    margin-bottom: 32px;
+}
+
+.registry-header h2 {
+    font-size: 2em;
+    margin-bottom: 8px;
+}
+
+.filters {
+    margin-top: 16px;
+}
+
+.filters button {
+    background: none;
+    border: 1px solid #ccc;
+    border-radius: 16px;
+    padding: 8px 16px;
+    margin-right: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filters button.active, .filters button:hover {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.solver-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.solver-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 24px;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s ease;
+}
+
+.solver-card:hover {
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.solver-card h3 {
+    font-size: 1.25em;
+    margin-bottom: 12px;
+}
+
+.solver-type {
+    display: inline-block;
+    font-size: 0.8em;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    color: white;
+}
+
+.solver-type.classical {
+    background-color: #3b82f6; /* Blue */
+}
+
+.solver-type.hybrid {
+    background-color: #16a34a; /* Green */
+}
+
+.solver-type.quantum {
+    background-color: #8b5cf6; /* Purple */
+}
