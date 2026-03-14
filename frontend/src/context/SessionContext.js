@@ -2,7 +2,7 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { doc, onSnapshot, updateDoc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { getDb } from '../firebase'; // Corrected import
 import { WORKFLOW_STAGES, STAGE_CONFIG } from '../workflow/stages';
 
 const SessionContext = createContext();
@@ -21,11 +21,12 @@ const SessionProvider = ({ children }) => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const sessionId = params.get('session');
+    const db = getDb(); // Get db instance here
 
-    if (sessionId) {
+    if (sessionId && db) { // Check if db is initialized
       setLoading(true);
       const sessionRef = doc(db, 'sessions', sessionId);
-      const unsubscribe = onSnapshot(sessionRef, 
+      const unsubscribe = onSnapshot(sessionRef,
         (docSnap) => {
           if (docSnap.exists()) {
             const sessionData = { id: docSnap.id, ...docSnap.data() };
@@ -59,14 +60,15 @@ const SessionProvider = ({ children }) => {
 
   // Effect to load session artifacts
   useEffect(() => {
-    if (session && session.id) {
+    const db = getDb(); // Get db instance here
+    if (session && session.id && db) { // Check if db is initialized
         const artifactsRef = doc(db, `sessions/${session.id}/artifacts`, 'latest');
-        const unsubscribe = onSnapshot(artifactsRef, 
+        const unsubscribe = onSnapshot(artifactsRef,
             (docSnap) => {
                 if (docSnap.exists()) {
                     setArtifacts(docSnap.data());
                 }
-            }, 
+            },
             (err) => {
                 console.error("Artifacts snapshot error:", err);
                 // Do not set a main error state here, as artifacts may not always exist
@@ -80,9 +82,10 @@ const SessionProvider = ({ children }) => {
 
   // Function to create a new session
   const createNewSession = async (goal) => {
-    if (!goal) return;
+    const db = getDb(); // Get db instance here
+    if (!goal || !db) return; // Check if db is initialized
     try {
-      const newSessionRef = doc(db, 'sessions', new Date().getTime().toString()); 
+      const newSessionRef = doc(db, 'sessions', new Date().getTime().toString());
       const newSession = {
         goal: goal,
         createdAt: new Date(),
@@ -100,6 +103,8 @@ const SessionProvider = ({ children }) => {
 
   // Function to update the current stage of a session
   const updateSession = async (sessionId, newStage) => {
+    const db = getDb(); // Get db instance here
+    if (!db) return; // Check if db is initialized
     const sessionRef = doc(db, 'sessions', sessionId);
     try {
       await updateDoc(sessionRef, { currentStage: newStage });
