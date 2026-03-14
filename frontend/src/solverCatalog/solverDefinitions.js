@@ -1,114 +1,189 @@
 
 export const solvers = [
+  // --- Classical Solvers --- //
   {
     id: 'classical_baseline',
     name: 'Classical Baseline Solver',
-    category: 'classical',
-    maturity: 'production-ready',
-    description: 'A standard, well-understood classical algorithm for optimization problems. It serves as a reliable baseline for performance and solution quality comparison.',
-    suitableProblemTypes: ['Combinatorial Optimization', 'Linear Programming', 'Graph Problems'],
-    requiredInputs: { 
-      cost_matrix: '2D array of costs',
-      constraints: 'Array of constraint objects'
-    },
-    strengths: [
-      'Fast and computationally efficient for many problem sizes.',
-      'Guaranteed to find the optimal solution for certain problem classes (e.g., convex problems).',
-      'Mature and well-documented with extensive library support.'
-    ],
-    weaknesses: [
-      'May get stuck in local optima for complex, non-convex problems.',
-      'Performance can degrade significantly as problem size and complexity increase.'
-    ],
-    interpretability: 'High. The steps and decisions of the algorithm are generally easy to follow and understand.',
-    executionNotes: 'This solver runs on a standard CPU environment. No special hardware is required.',
     uiLabel: 'Classical Baseline',
-    recommendedWhen: [
-      'The problem is well-understood and has a known classical solution method.',
-      'A quick and reliable baseline is needed for comparison.',
-      'Computational resources are limited.'
+    category: 'classical',
+    maturity: 'production',
+    description: 'A standard, well-established classical algorithm for solving optimization problems. It serves as a baseline to compare the performance of more advanced solvers.',
+    suitableProblemTypes: ['Linear Programming', 'Integer Programming', 'Combinatorial Optimization'],
+    requiredInputs: {
+      objective_function: 'The function to be minimized or maximized.',
+      constraints: 'A set of linear or non-linear constraints.'
+    },
+    strengths: [
+      'Guaranteed to find the optimal solution for convex problems.',
+      'Fast and efficient for a wide range of problems.',
+      'Highly mature and well-understood technology.'
+    ],
+    weaknesses: [
+      'May struggle with very large or complex non-convex problems.',
+      'Can get stuck in local optima for non-convex landscapes.'
     ],
     notRecommendedWhen: [
-      'The problem landscape is highly complex and known to have many local optima.',
-      'Exploring novel solution approaches is a primary goal.',
-      'The problem size exceeds the practical limits of classical hardware.'
+      'The problem space is known to be highly non-convex with many local minima.',
+      'The problem requires exploring quantum phenomena for a solution.'
     ],
     enabled: true,
-    runtimeStatus: 'active-backend',
-    referenceCodePath: '04_solvers/reference_code/python/classical_placeholder.py',
-    activeExecutionPath: 'Firebase Cloud Function: `startExecution` -> `finalizeExecution`',
+    runtimeStatus: 'runnable',
+    referenceCodePath: 'backend/solvers/classical/baseline_solver.py',
+    activeExecutionPath: 'N/A', 
   },
   {
-    id: 'quantum_inspired_annealing',
-    name: 'Quantum-Inspired Annealing',
+    id: 'linear_regression',
+    name: 'Linear Regression Analyzer',
+    uiLabel: 'Linear Regression',
+    category: 'classical',
+    maturity: 'production',
+    description: 'A statistical method for modeling the relationship between a dependent variable and one or more independent variables. It is a foundational tool in predictive analytics.',
+    suitableProblemTypes: ['Predictive Modeling', 'Data Analysis', 'Forecasting'],
+    requiredInputs: {
+      dataset: 'A structured dataset with a target variable and feature variables.',
+      target_variable: 'The variable to be predicted.'
+    },
+    strengths: [
+      'Simple to interpret and explain.',
+      'Computationally inexpensive.',
+      'Provides a good baseline for more complex models.'
+    ],
+    weaknesses: [
+      'Assumes a linear relationship between variables.',
+      'Sensitive to outliers.',
+      'May not capture complex patterns in the data.'
+    ],
+    notRecommendedWhen: [
+      'The underlying relationship is known to be non-linear.',
+      'The data contains significant noise or outliers that have not been addressed.'
+    ],
+    enabled: true,
+    runtimeStatus: 'runnable',
+    referenceCodePath: 'backend/solvers/classical/linear_regression.py',
+    activeExecutionPath: 'N/A',
+  },
+
+  // --- Hybrid Solvers --- //
+  {
+    id: 'vqe_prototype',
+    name: 'Variational Quantum Eigensolver (VQE) Prototype',
+    uiLabel: 'VQE (Prototype)',
     category: 'hybrid',
-    maturity: 'runnable',
-    description: 'A quantum-inspired algorithm that mimics the principles of quantum annealing to find good solutions to complex optimization problems. It runs on classical hardware but uses quantum principles to escape local optima.',
-    suitableProblemTypes: ['Combinatorial Optimization', 'QUBO (Quadratic Unconstrained Binary Optimization)'],
-    requiredInputs: {
-      qubo_matrix: 'A square matrix representing the QUBO formulation of the problem.'
-    },
-    strengths: [
-      'More effective at escaping local optima than purely classical approaches.',
-      'Can handle larger and more complex problems than current quantum hardware.',
-      'Provides a bridge between classical and quantum computing.'
-    ],
-    weaknesses: [
-      'Not guaranteed to find the globally optimal solution.',
-      'Performance can be sensitive to parameter tuning.',
-      'The quality of the solution can vary between runs.'
-    ],
-    interpretability: 'Medium. While the high-level concept is understandable, the specific dynamics of the annealing process can be complex to trace.',
-    executionNotes: 'This is a simulation that runs on classical hardware, but is designed to model the behavior of a quantum annealer.',
-    uiLabel: 'Quantum-Inspired Annealer',
-    recommendedWhen: [
-      'The problem is a complex optimization task where finding a good solution is more important than finding the absolute best solution.',
-      'You want to explore quantum-like approaches without requiring access to quantum hardware.'
-    ],
-    notRecommendedWhen: [
-      'A guaranteed optimal solution is required.',
-      'The problem can be solved efficiently with a classical baseline solver.'
-    ],
-    enabled: true,
-    runtimeStatus: 'reference-only',
-    referenceCodePath: '04_solvers/reference_code/python/quantum_inspired_annealing_placeholder.py',
-    activeExecutionPath: 'N/A',
-  },
-  {
-    id: 'qaoa_candidate',
-    name: 'QAOA Candidate',
-    category: 'quantum',
     maturity: 'prototype',
-    description: 'The Quantum Approximate Optimization Algorithm (QAOA) is a hybrid quantum-classical algorithm for finding approximate solutions to combinatorial optimization problems. This is a candidate implementation for future execution on real quantum hardware.',
-    suitableProblemTypes: ['Combinatorial Optimization', 'Max-Cut'],
+    description: 'A hybrid quantum-classical algorithm used to find the lowest eigenvalue of a Hamiltonian. This prototype simulates the process and is intended for educational and validation purposes.',
+    suitableProblemTypes: ['Quantum Chemistry', 'Materials Science', 'Optimization'],
     requiredInputs: {
-      graph: 'A graph structure representing the problem.',
-      p: 'The number of layers in the QAOA circuit.'
+      hamiltonian: "A mathematical description of the system's energy (Hamiltonian).",
+      ansatz: 'A parameterized quantum circuit that prepares a trial wavefunction.'
     },
     strengths: [
-      'Has the potential to show quantum advantage for certain types of problems.',
-      'Is a leading candidate for near-term quantum computers.'
+      'Can leverage both classical and quantum resources.',
+      'Potentially capable of solving problems intractable for classical computers.',
+      'More resilient to noise than some other quantum algorithms.'
     ],
     weaknesses: [
-      'Currently limited by the number of qubits and gate fidelity of available quantum hardware.',
-      'Performance is highly dependent on the choice of parameters (p) and the classical optimization loop.',
-      'The quality of the solution is not guaranteed and can be noisy.'
-    ],
-    interpretability: 'Low. The quantum mechanics of the algorithm are not intuitive, and the results can be difficult to interpret.',
-    executionNotes: 'This is a prototype for running on a quantum simulator or future quantum hardware. It is not yet ready for production use.',
-    uiLabel: 'QAOA (Exploratory)',
-    recommendedWhen: [
-      'Exploring the potential of quantum algorithms for a specific problem.',
-      'The problem is small enough to be run on current quantum simulators or hardware.',
-      'The goal is research and learning, rather than finding a production-ready solution.'
+      'The simulation does not run on actual quantum hardware.',
+      'The choice of ansatz is crucial and can be difficult.',
+      'Optimization can be challenging.'
     ],
     notRecommendedWhen: [
-      'A reliable and optimal solution is required for a production system.',
-      'The problem is large and cannot be mapped to the available number of qubits.'
+      'A production-ready solution is required.',
+      'The problem does not have a well-defined Hamiltonian.'
     ],
     enabled: true,
-    runtimeStatus: 'exploratory-placeholder',
-    referenceCodePath: '04_solvers/reference_code/python/qaoa_placeholder.py',
+    runtimeStatus: 'runnable',
+    referenceCodePath: 'backend/solvers/hybrid/vqe_prototype.py',
     activeExecutionPath: 'N/A',
   },
+
+  // --- Quantum Solvers --- //
+   {
+    id: 'grover_search',
+    name: "Grover's Search Algorithm",
+    uiLabel: 'Grover Search (Sim)',
+    category: 'quantum',
+    maturity: 'simulator',
+    description: 'A well-known quantum algorithm that provides a quadratic speedup for unstructured search problems. It can find a "marked" item in a list of N items in approximately sqrt(N) steps.',
+    suitableProblemTypes: ['Unstructured Search', 'Database Querying', 'Cryptography'],
+    requiredInputs: {
+      oracle: 'A "black box" function that identifies the marked item.',
+      num_qubits: 'The number of qubits needed to represent the search space.'
+    },
+    strengths: [
+      'Provable quantum speedup for its specific problem type.',
+      'Demonstrates a fundamental quantum computing principle.'
+    ],
+    weaknesses: [
+      'Requires the construction of a problem-specific oracle.',
+      'The speedup is only quadratic.',
+      'Highly sensitive to noise on real quantum hardware.'
+    ],
+    notRecommendedWhen: [
+      'The problem has structure that can be exploited by classical algorithms.',
+      'The problem does not have a clear "marked item" or oracle.',
+      'A production-ready search solution is required.'
+        ],
+        enabled: true,
+        runtimeStatus: 'simulator',
+        referenceCodePath: 'backend/solvers/quantum/grover_search.py',
+        activeExecutionPath: 'N/A',
+      },
+      {
+        id: 'quantum_inspired_annealing',
+        name: 'Quantum-Inspired Annealing',
+        uiLabel: 'QI Annealing',
+        category: 'hybrid',
+        maturity: 'runnable',
+        description: 'A quantum-inspired algorithm that mimics the principles of quantum annealing to find good solutions to complex optimization problems. It runs on classical hardware but uses quantum principles to escape local optima.',
+        suitableProblemTypes: ['Combinatorial Optimization', 'QUBO (Quadratic Unconstrained Binary Optimization)'],
+        requiredInputs: {
+          qubo_matrix: 'A square matrix representing the QUBO formulation of the problem.'
+        },
+        strengths: [
+          'More effective at escaping local optima than purely classical approaches.',
+          'Can handle very large and complex problems.'
+        ],
+        weaknesses: [
+          'Does not guarantee finding the absolute global optimum.',
+          'Performance can be sensitive to hyperparameter tuning.'
+        ],
+    notRecommendedWhen: [
+          'A guaranteed optimal solution is required.',
+          'The problem can be solved efficiently with a classical baseline solver.'
+        ],
+        enabled: true,
+        runtimeStatus: 'reference-only',
+        referenceCodePath: '04_solvers/reference_code/python/quantum_inspired_annealing_placeholder.py',
+        activeExecutionPath: 'N/A',
+      },
+      {
+        id: 'qaoa_candidate',
+        name: 'QAOA Candidate',
+        uiLabel: 'QAOA (Candidate)',
+        category: 'quantum',
+        maturity: 'prototype',
+        description: 'The Quantum Approximate Optimization Algorithm (QAOA) is a hybrid quantum-classical algorithm for finding approximate solutions to combinatorial optimization problems. This is a candidate implementation for future execution on real quantum hardware.',
+        suitableProblemTypes: ['Combinatorial Optimization', 'Max-Cut'],
+        requiredInputs: {
+          graph: 'A graph structure representing the problem.',
+          p: 'The number of layers in the QAOA circuit.'
+        },
+        strengths: [
+          'Shows promise for achieving quantum advantage in optimization.',
+          'Adaptable to different problem types.'
+        ],
+        weaknesses: [
+      'Currently in a prototype stage; not ready for production use.',
+      'Performance depends heavily on the classical optimization loop.',
+      'Requires a quantum computer to run effectively.'
+    ],
+    notRecommendedWhen: [
+      'A production-ready or guaranteed optimal solution is needed.',
+      'The problem does not map well to a QAOA formulation.'
+        ],
+        enabled: false,
+        runtimeStatus: 'prototype',
+        referenceCodePath: '04_solvers/reference_code/python/qaoa_candidate_placeholder.py',
+        activeExecutionPath: 'N/A',
+      }
 ];

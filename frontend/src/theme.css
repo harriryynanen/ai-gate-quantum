@@ -1,5 +1,5 @@
 
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700&family=Inter:wght@400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;600&display=swap');
 
   *, *::before, *::after {
     box-sizing: border-box;
@@ -8,32 +8,32 @@
   }
 
   :root {
-    --q-bg: #F8F7F4;
-    --q-surface: #FFFFFF;
-    --q-surface-alt: #F0EFEA;
-    --q-border: #E5E4E0;
-    --q-border-subtle: #F0EFEA;
-    --q-text-primary: #1C1C1A;
-    --q-text-secondary: #5A5A56;
-    --q-text-tertiary: #9A9A94;
-    --q-accent-primary: #2C5282;
-    --q-accent-hover: #1A365D;
-    --q-accent-bg: #EAF0F6;
-    --q-success: #2F6C4C;
-    --q-success-bg: #EBF4F0;
-    --q-warn: #8A5300;
-    --q-warn-bg: #FFF5E5;
-    --q-danger: #A03C3C;
-    --q-danger-bg: #FBECEC;
-    --q-quantum: #4D44B5;
-    --q-quantum-bg: #EDEDFD;
-
+    --q-bg: #F4F3EF;
+    --q-surface: #ECEAE4;
+    --q-card: #FFFFFF;
+    --q-border: rgba(0,0,0,0.10);
+    --q-border-s: rgba(0,0,0,0.18);
+    --q-text: #1A1A18;
+    --q-muted: #5A5A56;
+    --q-hint: #9A9A94;
+    --q-accent: #185FA5;
+    --q-accent-bg: #E6F1FB;
+    --q-accent-text: #0C447C;
+    --q-success: #1A7040;
+    --q-success-bg: #EAF3DE;
+    --q-warn: #8A5800;
+    --q-warn-bg: #FAEEDA;
+    --q-danger: #A32D2D;
+    --q-danger-bg: #FCEBEB;
+    --q-quantum: #534AB7;
+    --q-quantum-bg: #EEEDFE;
     --q-radius-sm: 4px;
     --q-radius-md: 8px;
     --q-radius-lg: 12px;
 
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-display: 'Syne', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
 
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
@@ -43,27 +43,28 @@
   body {
     font-family: var(--font-sans);
     background-color: var(--q-bg);
-    color: var(--q-text-primary);
+    color: var(--q-text);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-size: 13px;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    font-weight: 700;
+    font-weight: 600;
+    color: var(--q-text);
   }
 
-  h1 { font-size: 2.25rem; }
-  h2 { font-size: 1.5rem; border-bottom: 1px solid var(--q-border); padding-bottom: 0.5rem; margin-bottom: 1rem;}
-  h3 { font-size: 1.25rem; }
-  p { line-height: 1.6; color: var(--q-text-secondary); }
+  h1 { font-size: 20px; }
+  h2 { font-size: 18px; }
+  h3 { font-size: 16px; }
+  p { line-height: 1.6; color: var(--q-muted); }
 
   .card {
-    background-color: var(--q-surface);
-    border: 1px solid var(--q-border);
+    background-color: var(--q-card);
+    border: 0.5px solid var(--q-border);
     border-radius: var(--q-radius-lg);
     box-shadow: var(--shadow-sm);
-    padding: 1.5rem;
   }
 
   .btn {
@@ -71,46 +72,44 @@
     align-items: center;
     justify-content: center;
     font-weight: 500;
-    font-size: 0.875rem;
-    padding: 0.5rem 1rem;
+    font-size: 13px;
+    padding: 8px 16px;
     border-radius: var(--q-radius-md);
-    border: 1px solid transparent;
+    border: 0.5px solid transparent;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
   }
 
   .btn-primary {
-    background-color: var(--q-accent-primary);
+    background-color: var(--q-accent);
     color: white;
   }
   .btn-primary:hover {
-    background-color: var(--q-accent-hover);
+    opacity: 0.88;
   }
 
   .btn-secondary {
-    background-color: var(--q-surface);
-    color: var(--q-text-primary);
-    border-color: var(--q-border);
+    background-color: var(--q-card);
+    color: var(--q-text);
+    border-color: var(--q-border-s);
   }
   .btn-secondary:hover {
-    background-color: var(--q-surface-alt);
-    border-color: #D1D0CC;
+    background-color: var(--q-surface);
   }
 
   .badge {
     display: inline-block;
-    padding: 0.25em 0.6em;
-    font-size: 0.75rem;
-    font-weight: 600;
+    padding: 3px 7px;
+    font-size: 10px;
+    font-weight: 500;
     line-height: 1;
     text-align: center;
     white-space: nowrap;
     vertical-align: baseline;
-    border-radius: var(--q-radius-sm);
+    border-radius: 4px;
   }
 
   .badge-quantum { background-color: var(--q-quantum-bg); color: var(--q-quantum); }
-  .badge-classical { background-color: var(--q-accent-bg); color: var(--q-accent-primary); }
+  .badge-classical { background-color: var(--q-accent-bg); color: var(--q-accent-text); }
   .badge-complete { background-color: var(--q-success-bg); color: var(--q-success); }
   .badge-in-progress { background-color: var(--q-warn-bg); color: var(--q-warn); }
-
