@@ -7,7 +7,8 @@ import JobConfiguration from './pages/JobConfiguration';
 import ExecutionMonitor from './pages/ExecutionMonitor';
 import ResultPage from './pages/ResultPage';
 import JobHistory from './pages/JobHistory';
-import SolverRegistry from './pages/SolverRegistry'; 
+import SolverRegistry from './pages/SolverRegistry';
+import DataPreparation from './pages/DataPreparation';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
       <Route path="/" element={<AppShell />}>
         <Route index element={<Dashboard />} />
         <Route path="chat" element={<AIChatWorkspace />} />
+        <Route path="data" element={<DataPreparation />} />
         <Route path="config" element={<JobConfiguration />} />
         <Route path="monitor" element={<ExecutionMonitor />} />
         <Route path="results" element={<ResultPage />} />

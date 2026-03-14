@@ -1,38 +1,72 @@
 import React from 'react';
-import { Link, Outlet } from 'react-router-dom';
-import './AppShell.css';
+import { NavLink, Outlet, Link } from 'react-router-dom';
+import './AppShell.css'; 
+
+const AppLink = ({ to, children }) => (
+  <NavLink 
+    to={to} 
+    className={({ isActive }) => 
+      `app-link ${isActive ? 'active' : ''}`
+    }
+  >
+    {children}
+  </NavLink>
+);
 
 const AppShell = () => {
+  const inProgressJobs = [];
+
+  const completedJobs = [];
+
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div className="logo">QuantumFlow</div>
+        <div className="logo">
+          <span className="logo-main">QuantumFlow</span>
+          <span className="logo-sub">AI-Assisted Analytics</span>
+        </div>
         <nav className="top-nav">
-          <Link to="/">Dashboard</Link>
-          <Link to="/config">New Job</Link>
-          <Link to="/history">History</Link>
-          <Link to="/solvers">Solver Registry</Link>
+          <AppLink to="/">Dashboard</AppLink>
+          <AppLink to="/data">Data</AppLink>
+          <AppLink to="/history">Job History</AppLink>
+          <AppLink to="/solvers">Solvers</AppLink>
         </nav>
-        <div className="user-profile">User</div>
+        <div className="user-menu">
+          <div className="user-avatar"></div>
+        </div>
       </header>
       <div className="app-body">
-        <nav className="left-nav">
-          {/* This area can be used for session history or contextual navigation */}
-          <p>Session History</p>
-          <ul>
-            <li>Job #1234 - In Progress</li>
-            <li>Job #1233 - Complete</li>
-          </ul>
+        <nav className="left-sidebar">
+            <div className="sidebar-section">
+                <Link to="/config" className="new-analysis-btn">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    Uusi analyysi
+                </Link>
+            </div>
+            {inProgressJobs.length > 0 && (
+              <div className="sidebar-section">
+                  <h3 className="sidebar-title">Kesken</h3>
+                  <ul className="job-list">
+                      {inProgressJobs.map(job => (
+                          <li key={job.id}><NavLink to={`/results?job=${job.id}`}>{job.name}</NavLink></li>
+                      ))}
+                  </ul>
+              </div>
+            )}
+            {completedJobs.length > 0 && (
+              <div className="sidebar-section">
+                  <h3 className="sidebar-title">Valmiit</h3>
+                  <ul className="job-list">
+                      {completedJobs.map(job => (
+                          <li key={job.id}><NavLink to={`/results?job=${job.id}`}>{job.name}</NavLink></li>
+                      ))}
+                  </ul>
+              </div>
+            )}
         </nav>
         <main className="main-content">
-          <Outlet /> {/* Child routes will render here */}
+          <Outlet />
         </main>
-        <aside className="right-rail">
-          <div className="ai-assistant-panel">
-            <h4>AI Assistant</h4>
-            <p>Your contextual AI partner.</p>
-          </div>
-        </aside>
       </div>
     </div>
   );

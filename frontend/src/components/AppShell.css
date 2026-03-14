@@ -1,68 +1,161 @@
-:root {
-    --header-height: 60px;
-    --left-nav-width: 240px;
-    --right-rail-width: 280px;
-    --border-color: #e5e7eb; /* Light gray for borders */
-    --background-color: #f9fafb; /* Off-white background */
-    --text-color: #111827; /* Dark gray text */
-}
 
 .app-shell {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    font-family: 'Inter', sans-serif; /* A modern font choice */
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--q-bg);
 }
 
 .app-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 24px;
-    height: var(--header-height);
-    border-bottom: 1px solid var(--border-color);
-    background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  padding: 0 2rem;
+  height: 64px;
+  background-color: var(--q-surface);
+  border-bottom: 1px solid var(--q-border);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
 }
 
 .logo {
-    font-size: 1.5em;
-    font-weight: 600;
+  display: flex;
+  align-items: baseline;
 }
 
-.top-nav a {
-    margin: 0 16px;
-    text-decoration: none;
-    color: var(--text-color);
-    font-weight: 500;
+.logo-main {
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--q-text-primary);
+}
+
+.logo-sub {
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+  color: var(--q-text-tertiary);
+  font-weight: 500;
+}
+
+.top-nav {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.app-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  color: var(--q-text-secondary);
+  text-decoration: none;
+  border-radius: var(--q-radius-md);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.app-link:hover {
+  background-color: var(--q-surface-alt);
+  color: var(--q-text-primary);
+}
+
+.app-link.active {
+  background-color: var(--q-accent-bg);
+  color: var(--q-accent-primary);
+  font-weight: 600;
+}
+
+.user-menu {
+  margin-left: 2rem;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  background-color: var(--q-accent-primary);
+  border-radius: 50%;
 }
 
 .app-body {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
+  display: flex;
+  flex: 1;
+  overflow: hidden;
 }
 
-.left-nav {
-    width: var(--left-nav-width);
-    border-right: 1px solid var(--border-color);
-    padding: 24px;
-    background-color: #ffffff;
+.left-sidebar {
+  width: 280px;
+  background-color: var(--q-surface);
+  border-right: 1px solid var(--q-border);
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.sidebar-section {
+    margin-bottom: 1rem;
+}
+
+.new-analysis-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: var(--q-accent-primary);
+    color: white;
+    border: none;
+    border-radius: var(--q-radius-lg);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.new-analysis-btn:hover {
+    background-color: var(--q-accent-primary-dark);
+}
+
+.sidebar-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--q-text-tertiary);
+    padding: 0 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.job-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.job-list li a {
+    display: block;
+    padding: 0.6rem 0.5rem;
+    border-radius: var(--q-radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--q-text-secondary);
+    text-decoration: none;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.job-list li a:hover {
+    background-color: var(--q-surface-alt);
+    color: var(--q-text-primary);
+}
+
+.job-list li a.active {
+    background-color: var(--q-accent-bg);
+    color: var(--q-accent-primary);
+    font-weight: 600;
 }
 
 .main-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 32px;
-    background-color: var(--background-color);
-}
-
-.right-rail {
-    width: var(--right-rail-width);
-    border-left: 1px solid var(--border-color);
-    padding: 24px;
-    background-color: #ffffff;
-}
-
-.ai-assistant-panel {
-    /* Styles for the AI assistant panel */
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
 }
