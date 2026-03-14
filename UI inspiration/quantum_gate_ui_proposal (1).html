@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Gate Quantum — UI Proposal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --q-bg: #F4F3EF;
+    --q-surface: #ECEAE4;
+    --q-card: #FFFFFF;
+    --q-border: rgba(0,0,0,0.10);
+    --q-border-s: rgba(0,0,0,0.18);
+    --q-text: #1A1A18;
+    --q-muted: #5A5A56;
+    --q-hint: #9A9A94;
+    --q-accent: #185FA5;
+    --q-accent-bg: #E6F1FB;
+    --q-accent-text: #0C447C;
+    --q-success: #1A7040;
+    --q-success-bg: #EAF3DE;
+    --q-warn: #8A5800;
+    --q-warn-bg: #FAEEDA;
+    --q-danger: #A32D2D;
+    --q-danger-bg: #FCEBEB;
+    --q-quantum: #534AB7;
+    --q-quantum-bg: #EEEDFE;
+    --q-r: 8px;
+    --q-rl: 12px;
+    --mono: 'IBM Plex Mono', monospace;
+    --display: 'Syne', sans-serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --q-bg: #1A1A18;
+      --q-surface: #242420;
+      --q-card: #2C2C28;
+      --q-border: rgba(255,255,255,0.10);
+      --q-border-s: rgba(255,255,255,0.18);
+      --q-text: #E8E6DE;
+      --q-muted: #A0A098;
+      --q-hint: #606058;
+      --q-accent: #378ADD;
+      --q-accent-bg: #0C2A42;
+      --q-accent-text: #85B7EB;
+      --q-success: #56A870;
+      --q-success-bg: #173404;
+      --q-warn: #D4A84A;
+      --q-warn-bg: #2A1E08;
+      --q-danger: #E24B4A;
+      --q-danger-bg: #2A0C0C;
+      --q-quantum: #AFA9EC;
+      --q-quantum-bg: #1E1A40;
+    }
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--q-bg);
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 1200px;
+    min-height: 700px;
+    display: flex;
+    flex-direction: column;
+    background: var(--q-bg);
+    border-radius: var(--q-rl);
+    border: 0.5px solid var(--q-border);
+    overflow: hidden;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.08);
+  }
+
+  /* Top nav */
+  .topnav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 20px;
+    height: 52px;
+    background: var(--q-card);
+    border-bottom: 0.5px solid var(--q-border);
+    flex-shrink: 0;
+  }
+  .logo {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--q-text);
+    letter-spacing: -0.3px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .logo-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--q-quantum);
+    flex-shrink: 0;
+  }
+  .nav-sep { flex: 1; }
+  .nav-tabs {
+    display: flex;
+    gap: 2px;
+    background: var(--q-surface);
+    border-radius: 8px;
+    padding: 3px;
+    border: 0.5px solid var(--q-border);
+  }
+  .nav-tab {
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--q-muted);
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.15s;
+    border: none; background: none;
+    white-space: nowrap;
+  }
+  .nav-tab.active {
+    background: var(--q-card);
+    color: var(--q-text);
+    border: 0.5px solid var(--q-border);
+  }
+  .nav-tab:hover:not(.active) { color: var(--q-text); }
+
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--q-card);
+    border-right: 0.5px solid var(--q-border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .sidebar-section { padding: 14px 16px 8px; }
+  .sidebar-label {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--q-hint);
+    margin-bottom: 8px;
+  }
+  .new-btn {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--q-accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--q-r);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 12px;
+    transition: opacity 0.15s;
+  }
+  .new-btn:hover { opacity: 0.88; }
+
+  .session-item {
+    padding: 8px 10px;
+    border-radius: var(--q-r);
+    cursor: pointer;
+    margin-bottom: 2px;
+    border: 0.5px solid transparent;
+    transition: all 0.12s;
+  }
+  .session-item:hover { background: var(--q-surface); }
+  .session-item.active { background: var(--q-accent-bg); border-color: rgba(24,95,165,0.2); }
+  .si-name { font-size: 12px; font-weight: 500; color: var(--q-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+  .si-meta { display: flex; align-items: center; gap: 6px; }
+  .badge { font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+  .badge-in-progress { background: var(--q-warn-bg); color: var(--q-warn); }
+  .badge-complete { background: var(--q-success-bg); color: var(--q-success); }
+  .badge-quantum { background: var(--q-quantum-bg); color: var(--q-quantum); }
+  .badge-classical { background: #E6F1FB; color: #185FA5; }
+  .si-date { font-size: 10px; color: var(--q-hint); }
+  .sidebar-divider { height: 0.5px; background: var(--q-border); margin: 4px 16px; }
+
+  /* Content */
+  .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .screen { display: none; flex: 1; overflow: hidden; }
+  .screen.active { display: flex; flex-direction: column; overflow: auto; }
+
+  /* Dashboard */
+  .dashboard-header { padding: 24px 28px 16px; border-bottom: 0.5px solid var(--q-border); background: var(--q-card); flex-shrink: 0; }
+  .dh-title { font-family: var(--display); font-size: 20px; font-weight: 600; color: var(--q-text); margin-bottom: 4px; }
+  .dh-sub { font-size: 13px; color: var(--q-muted); }
+  .dashboard-body { padding: 20px 28px; flex: 1; overflow-y: auto; }
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .stat-card { background: var(--q-surface); border-radius: var(--q-r); padding: 14px 16px; }
+  .stat-label { font-size: 11px; color: var(--q-muted); margin-bottom: 6px; font-weight: 500; }
+  .stat-value { font-size: 22px; font-weight: 500; color: var(--q-text); font-family: var(--display); }
+  .stat-sub { font-size: 11px; color: var(--q-hint); margin-top: 2px; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .section-title { font-size: 13px; font-weight: 500; color: var(--q-text); }
+  .section-action { font-size: 12px; color: var(--q-accent-text); cursor: pointer; background: none; border: none; padding: 0; }
+  .job-table { width: 100%; border: 0.5px solid var(--q-border); border-radius: var(--q-rl); overflow: hidden; background: var(--q-card); margin-bottom: 24px; }
+  .jt-head { display: grid; grid-template-columns: 2fr 1.2fr 1fr 1fr 1fr 80px; padding: 9px 16px; background: var(--q-surface); border-bottom: 0.5px solid var(--q-border); }
+  .jt-hcell { font-size: 11px; font-weight: 500; color: var(--q-hint); text-transform: uppercase; letter-spacing: 0.5px; }
+  .jt-row { display: grid; grid-template-columns: 2fr 1.2fr 1fr 1fr 1fr 80px; padding: 10px 16px; border-bottom: 0.5px solid var(--q-border); align-items: center; cursor: pointer; transition: background 0.1s; }
+  .jt-row:last-child { border-bottom: none; }
+  .jt-row:hover { background: var(--q-surface); }
+  .jt-name { font-size: 12px; font-weight: 500; color: var(--q-text); }
+  .jt-sub { font-size: 11px; color: var(--q-muted); margin-top: 1px; }
+  .jt-cell { font-size: 12px; color: var(--q-muted); }
+  .jt-mono { font-family: var(--mono); font-size: 11px; color: var(--q-muted); }
+
+  /* Wizard */
+  .wizard-wrap { display: flex; flex: 1; overflow: hidden; }
+  .wizard-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .step-bar { padding: 16px 28px 0; background: var(--q-card); border-bottom: 0.5px solid var(--q-border); flex-shrink: 0; }
+  .step-bar-inner { display: flex; align-items: flex-start; gap: 0; }
+  .step-item { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; cursor: pointer; }
+  .step-item:not(:last-child)::after { content: ''; position: absolute; top: 12px; left: calc(50% + 16px); right: calc(-50% + 16px); height: 1px; background: var(--q-border-s); z-index: 0; }
+  .step-item.done:not(:last-child)::after { background: var(--q-accent); }
+  .step-circle { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--q-border-s); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: var(--q-muted); background: var(--q-card); z-index: 1; transition: all 0.2s; flex-shrink: 0; }
+  .step-item.active .step-circle { border-color: var(--q-accent); color: var(--q-accent); background: var(--q-accent-bg); }
+  .step-item.done .step-circle { border-color: var(--q-accent); background: var(--q-accent); color: #fff; }
+  .step-label { font-size: 10px; font-weight: 500; color: var(--q-hint); margin-top: 6px; text-align: center; white-space: nowrap; padding-bottom: 12px; }
+  .step-item.active .step-label { color: var(--q-accent-text); }
+  .step-item.done .step-label { color: var(--q-muted); }
+
+  .wizard-body { flex: 1; overflow-y: auto; padding: 24px 28px; }
+  .wizard-step { display: none; }
+  .wizard-step.active { display: block; }
+  .ws-title { font-family: var(--display); font-size: 18px; font-weight: 600; color: var(--q-text); margin-bottom: 4px; }
+  .ws-desc { font-size: 13px; color: var(--q-muted); margin-bottom: 20px; line-height: 1.5; }
+
+  /* Chat */
+  .chat-area { background: var(--q-card); border: 0.5px solid var(--q-border); border-radius: var(--q-rl); padding: 16px; margin-bottom: 16px; max-height: 240px; overflow-y: auto; }
+  .chat-msg { margin-bottom: 12px; display: flex; gap: 10px; align-items: flex-start; }
+  .chat-avatar { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; }
+  .chat-avatar.ai { background: var(--q-quantum-bg); color: var(--q-quantum); }
+  .chat-avatar.user { background: var(--q-accent-bg); color: var(--q-accent-text); }
+  .chat-bubble { font-size: 12px; line-height: 1.6; color: var(--q-text); background: var(--q-surface); padding: 8px 12px; border-radius: 10px; max-width: 92%; }
+  .chat-bubble.ai { border-radius: 4px 10px 10px 10px; }
+  .chat-bubble.user { border-radius: 10px 4px 10px 10px; background: var(--q-accent-bg); }
+  .chat-input-row { display: flex; gap: 8px; margin-bottom: 20px; }
+  .chat-input-row input { flex: 1; padding: 9px 12px; font-size: 13px; background: var(--q-card); border: 0.5px solid var(--q-border-s); border-radius: var(--q-r); color: var(--q-text); font-family: var(--sans); }
+  .chat-input-row input:focus { outline: none; border-color: var(--q-accent); }
+  .send-btn { padding: 9px 16px; background: var(--q-accent); color: #fff; border: none; border-radius: var(--q-r); font-size: 12px; font-weight: 500; cursor: pointer; }
+  .suggestion-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .chip { padding: 6px 12px; font-size: 12px; color: var(--q-accent-text); background: var(--q-accent-bg); border: 0.5px solid rgba(24,95,165,0.2); border-radius: 20px; cursor: pointer; transition: all 0.12s; }
+  .chip:hover { background: var(--q-accent); color: #fff; border-color: var(--q-accent); }
+
+  /* Data upload */
+  .upload-zone { border: 1.5px dashed var(--q-border-s); border-radius: var(--q-rl); padding: 40px 24px; text-align: center; cursor: pointer; transition: all 0.15s; background: var(--q-card); margin-bottom: 16px; }
+  .upload-zone:hover { border-color: var(--q-accent); background: var(--q-accent-bg); }
+  .upload-icon { width: 40px; height: 40px; margin: 0 auto 12px; background: var(--q-surface); border-radius: var(--q-r); display: flex; align-items: center; justify-content: center; }
+  .upload-title { font-size: 14px; font-weight: 500; color: var(--q-text); margin-bottom: 4px; }
+  .upload-sub { font-size: 12px; color: var(--q-muted); }
+  .data-preview { background: var(--q-card); border: 0.5px solid var(--q-border); border-radius: var(--q-rl); overflow: hidden; margin-bottom: 16px; }
+  .dp-header { padding: 10px 16px; background: var(--q-surface); border-bottom: 0.5px solid var(--q-border); display: flex; align-items: center; gap: 8px; }
+  .dp-filename { font-size: 12px; font-weight: 500; color: var(--q-text); }
+  .dp-badge { font-size: 10px; color: var(--q-muted); background: var(--q-bg); padding: 2px 6px; border-radius: 4px; border: 0.5px solid var(--q-border); }
+  .dp-table-wrap { overflow-x: auto; }
+  .dp-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .dp-table th { padding: 8px 12px; text-align: left; font-weight: 500; color: var(--q-hint); background: var(--q-surface); border-bottom: 0.5px solid var(--q-border); white-space: nowrap; }
+  .dp-table td { padding: 7px 12px; color: var(--q-muted); border-bottom: 0.5px solid var(--q-border); font-family: var(--mono); white-space: nowrap; }
+  .dp-table tr:last-child td { border-bottom: none; }
+  .dp-table tr:hover td { background: var(--q-surface); }
+
+  /* Quality alerts */
+  .quality-alerts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .qa-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border-radius: var(--q-r); border: 0.5px solid; font-size: 12px; line-height: 1.5; }
+  .qa-item.warn { background: var(--q-warn-bg); border-color: rgba(185,115,11,0.2); color: var(--q-warn); }
+  .qa-item.ok { background: var(--q-success-bg); border-color: rgba(30,120,70,0.2); color: var(--q-success); }
+  .qa-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+  .qa-item.warn .qa-dot { background: var(--q-warn); }
+  .qa-item.ok .qa-dot { background: var(--q-success); }
+
+  /* Solver cards */
+  .solver-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+  .solver-card { background: var(--q-card); border: 1px solid var(--q-border); border-radius: var(--q-rl); padding: 16px; cursor: pointer; transition: all 0.15s; }
+  .solver-card:hover { border-color: var(--q-border-s); }
+  .solver-card.selected { border-color: var(--q-accent); border-width: 2px; background: var(--q-accent-bg); }
+  .solver-card.recommended { border-color: var(--q-quantum); border-width: 2px; }
+  .sc-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+  .sc-name { font-size: 13px; font-weight: 500; color: var(--q-text); margin-bottom: 3px; }
+  .sc-domain { font-size: 11px; color: var(--q-muted); }
+  .sc-type-badge { font-size: 10px; font-weight: 500; padding: 3px 7px; border-radius: 4px; flex-shrink: 0; }
+  .sc-type-classical { background: #E6F1FB; color: #185FA5; }
+  .sc-type-quantum { background: var(--q-quantum-bg); color: var(--q-quantum); }
+  .sc-desc { font-size: 12px; color: var(--q-muted); line-height: 1.5; margin-bottom: 10px; }
+  .sc-metrics { display: flex; gap: 12px; }
+  .sc-metric { font-size: 11px; color: var(--q-hint); }
+  .sc-metric span { color: var(--q-text); font-weight: 500; }
+  .ai-rec-pill { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: var(--q-quantum-bg); border: 0.5px solid rgba(83,74,183,0.2); border-radius: var(--q-r); font-size: 12px; color: var(--q-quantum); margin-bottom: 16px; }
+
+  /* Mapping */
+  .mapping-table { width: 100%; border: 0.5px solid var(--q-border); border-radius: var(--q-rl); overflow: hidden; background: var(--q-card); margin-bottom: 16px; }
+  .mt-head { display: grid; grid-template-columns: 1.5fr 0.8fr 1.5fr 1fr; padding: 9px 16px; background: var(--q-surface); border-bottom: 0.5px solid var(--q-border); gap: 12px; }
+  .mt-hc { font-size: 11px; font-weight: 500; color: var(--q-hint); text-transform: uppercase; letter-spacing: 0.5px; }
+  .mt-row { display: grid; grid-template-columns: 1.5fr 0.8fr 1.5fr 1fr; padding: 10px 16px; border-bottom: 0.5px solid var(--q-border); align-items: center; gap: 12px; }
+  .mt-row:last-child { border-bottom: none; }
+  .mt-cell { font-size: 12px; color: var(--q-text); font-family: var(--mono); }
+  .mt-type { font-size: 11px; color: var(--q-muted); background: var(--q-surface); padding: 2px 6px; border-radius: 4px; display: inline-block; }
+  .mt-select { padding: 5px 8px; font-size: 12px; background: var(--q-surface); border: 0.5px solid var(--q-border-s); border-radius: 6px; color: var(--q-text); width: 100%; font-family: var(--sans); }
+  .mt-select.mapped { border-color: var(--q-success); background: var(--q-success-bg); }
+
+  /* Execution */
+  .exec-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; margin-bottom: 16px; }
+  .exec-card { background: var(--q-card); border: 0.5px solid var(--q-border); border-radius: var(--q-rl); overflow: hidden; }
+  .ec-head { padding: 10px 14px; background: var(--q-surface); border-bottom: 0.5px solid var(--q-border); display: flex; align-items: center; justify-content: space-between; }
+  .ec-title { font-size: 12px; font-weight: 500; color: var(--q-text); }
+  .ec-body { padding: 14px; }
+  .timeline-item { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
+  .tl-dot-wrap { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .tl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; }
+  .tl-dot.done { background: var(--q-accent); }
+  .tl-dot.active { background: var(--q-warn); }
+  .tl-dot.pending { background: var(--q-border-s); }
+  .tl-line { width: 1px; flex: 1; background: var(--q-border); min-height: 16px; margin-top: 2px; }
+  .tl-label { font-size: 12px; font-weight: 500; color: var(--q-text); }
+  .tl-meta { font-size: 11px; color: var(--q-muted); margin-top: 1px; }
+  .log-area { background: #0d1117; border-radius: var(--q-r); padding: 12px; font-family: var(--mono); font-size: 11px; line-height: 1.7; max-height: 200px; overflow-y: auto; }
+  .log-line { color: #8b949e; }
+  .log-line.info { color: #79c0ff; }
+  .log-line.ok { color: #56d364; }
+  .log-line.warn { color: #e3b341; }
+
+  /* Results */
+  .result-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .result-card { background: var(--q-card); border: 0.5px solid var(--q-border); border-radius: var(--q-rl); padding: 16px; }
+  .rc-label { font-size: 11px; font-weight: 500; color: var(--q-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .rc-value { font-size: 28px; font-weight: 500; color: var(--q-text); font-family: var(--display); }
+  .rc-sub { font-size: 12px; color: var(--q-muted); margin-top: 2px; }
+  .chart-bar-area { background: var(--q-card); border: 0.5px solid var(--q-border); border-radius: var(--q-rl); padding: 16px; margin-bottom: 16px; }
+  .chart-bars { display: flex; align-items: flex-end; gap: 4px; height: 80px; margin-top: 12px; }
+  .chart-bar { flex: 1; border-radius: 3px 3px 0 0; min-height: 4px; opacity: 0.85; }
+  .chart-bar.primary { background: var(--q-accent); }
+
+  /* AI Panel */
+  .ai-panel { width: 260px; flex-shrink: 0; background: var(--q-card); border-left: 0.5px solid var(--q-border); display: flex; flex-direction: column; overflow: hidden; }
+  .ap-header { padding: 14px 16px 12px; border-bottom: 0.5px solid var(--q-border); flex-shrink: 0; }
+  .ap-title { font-size: 12px; font-weight: 500; color: var(--q-text); margin-bottom: 2px; display: flex; align-items: center; gap: 6px; }
+  .ai-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--q-quantum); flex-shrink: 0; }
+  .ap-scope { font-size: 11px; color: var(--q-hint); }
+  .ap-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .ap-msg { font-size: 12px; line-height: 1.6; }
+  .ap-msg.ai { color: var(--q-text); }
+  .ap-msg.user { color: var(--q-muted); font-style: italic; }
+  .ap-quick-qs { padding: 8px 12px; border-top: 0.5px solid var(--q-border); display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
+  .ap-q { font-size: 11px; color: var(--q-accent-text); cursor: pointer; padding: 5px 8px; border-radius: 6px; background: var(--q-accent-bg); border: 0.5px solid rgba(24,95,165,0.15); line-height: 1.4; transition: opacity 0.1s; }
+  .ap-q:hover { opacity: 0.8; }
+  .ap-input-wrap { padding: 10px 12px; border-top: 0.5px solid var(--q-border); flex-shrink: 0; }
+  .ap-input-wrap input { width: 100%; padding: 8px 10px; font-size: 12px; border: 0.5px solid var(--q-border-s); border-radius: var(--q-r); background: var(--q-surface); color: var(--q-text); font-family: var(--sans); }
+  .ap-input-wrap input:focus { outline: none; border-color: var(--q-accent); }
+
+  /* Wizard footer */
+  .wizard-footer { padding: 14px 28px; background: var(--q-card); border-top: 0.5px solid var(--q-border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .wf-left { display: flex; align-items: center; gap: 8px; }
+  .wf-step-info { font-size: 12px; color: var(--q-muted); }
+  .btn-ghost { padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--q-muted); background: none; border: 0.5px solid var(--q-border-s); border-radius: var(--q-r); cursor: pointer; transition: all 0.12s; font-family: var(--sans); }
+  .btn-ghost:hover { color: var(--q-text); background: var(--q-surface); }
+  .btn-primary { padding: 8px 20px; font-size: 13px; font-weight: 500; color: #fff; background: var(--q-accent); border: none; border-radius: var(--q-r); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity 0.12s; font-family: var(--sans); }
+  .btn-primary:hover { opacity: 0.88; }
+
+  /* Solvers page */
+  .solvers-page { padding: 24px 28px; }
+  .solver-browser-card { background: var(--q-card); border: 0.5px solid var(--q-border); border-radius: var(--q-rl); overflow: hidden; margin-bottom: 16px; }
+  .sbc-header { padding: 16px 20px; border-bottom: 0.5px solid var(--q-border); display: flex; align-items: center; justify-content: space-between; }
+  .sbc-name-wrap { display: flex; align-items: center; gap: 10px; }
+  .sbc-name { font-size: 14px; font-weight: 500; color: var(--q-text); font-family: var(--display); }
+  .sbc-body { padding: 16px 20px; }
+  .sbc-desc { font-size: 13px; color: var(--q-muted); line-height: 1.6; margin-bottom: 14px; }
+  .sbc-meta-row { display: flex; gap: 20px; margin-bottom: 14px; }
+  .sbc-meta-item { font-size: 12px; color: var(--q-muted); }
+  .sbc-meta-item strong { color: var(--q-text); display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .code-snippet { background: #0d1117; border-radius: var(--q-r); padding: 14px; font-family: var(--mono); font-size: 11px; line-height: 1.7; overflow-x: auto; }
+  .cs-key { color: #79c0ff; }
+  .cs-str { color: #a5d6ff; }
+  .cs-num { color: #f2cc60; }
+  .cs-com { color: #8b949e; }
+  .cs-plain { color: #e6edf3; }
+
+  /* Data page */
+  .data-page { padding: 24px 28px; }
+  .dataset-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: var(--q-card); border: 0.5px solid var(--q-border); border-radius: var(--q-rl); margin-bottom: 8px; cursor: pointer; transition: border-color 0.12s; }
+  .dataset-item:hover { border-color: var(--q-border-s); }
+  .ds-icon { width: 36px; height: 36px; background: var(--q-surface); border-radius: var(--q-r); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
+  .ds-info { flex: 1; }
+  .ds-name { font-size: 13px; font-weight: 500; color: var(--q-text); margin-bottom: 2px; }
+  .ds-meta-row { display: flex; gap: 10px; }
+  .ds-meta { font-size: 11px; color: var(--q-muted); }
+  .ds-actions { display: flex; gap: 8px; }
+  .ds-action { padding: 5px 10px; font-size: 11px; color: var(--q-muted); background: var(--q-surface); border: 0.5px solid var(--q-border); border-radius: 6px; cursor: pointer; transition: all 0.1s; font-family: var(--sans); }
+  .ds-action:hover { color: var(--q-text); border-color: var(--q-border-s); }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Top nav -->
+  <div class="topnav">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      AI Gate Quantum
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showScreen('dashboard')">Dashboard</button>
+      <button class="nav-tab" onclick="showScreen('wizard')">Analyysit</button>
+      <button class="nav-tab" onclick="showScreen('solvers')">Solverit</button>
+      <button class="nav-tab" onclick="showScreen('data')">Data</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <button class="new-btn" onclick="showScreen('wizard'); setStep(0)">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Uusi analyysi
+        </button>
+        <div class="sidebar-label">Kesken</div>
+        <div class="session-item active" onclick="showScreen('wizard')">
+          <div class="si-name">Option pricing — Q4</div>
+          <div class="si-meta"><span class="badge badge-in-progress">Vaihe 3/8</span><span class="si-date">tänään</span></div>
+        </div>
+        <div class="session-item" onclick="showScreen('wizard'); setStep(1)">
+          <div class="si-name">Credit risk portfolio</div>
+          <div class="si-meta"><span class="badge badge-in-progress">Vaihe 2/8</span><span class="si-date">eilen</span></div>
+        </div>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-label">Valmiit</div>
+        <div class="session-item" onclick="showScreen('wizard'); setStep(7)">
+          <div class="si-name">Insurance loss sim</div>
+          <div class="si-meta"><span class="badge badge-complete">Valmis</span><span class="si-date">3 pv</span></div>
+        </div>
+        <div class="session-item">
+          <div class="si-name">Qiskit option demo</div>
+          <div class="si-meta"><span class="badge badge-quantum">Quantum</span><span class="si-date">1 vk</span></div>
+        </div>
+        <div class="session-item">
+          <div class="si-name">Credit VAR baseline</div>
+          <div class="si-meta"><span class="badge badge-complete">Valmis</span><span class="si-date">2 vk</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="screen active" id="screen-dashboard">
+        <div class="dashboard-header">
+          <div class="dh-title">Dashboard</div>
+          <div class="dh-sub">Kvantti- ja klassisten analyysien hallintapaneeli</div>
+        </div>
+        <div class="dashboard-body">
+          <div class="stats-row">
+            <div class="stat-card"><div class="stat-label">Ajoja yhteensä</div><div class="stat-value">24</div><div class="stat-sub">+3 tällä viikolla</div></div>
+            <div class="stat-card"><div class="stat-label">Onnistuneet</div><div class="stat-value">21</div><div class="stat-sub">87.5% onnistumisaste</div></div>
+            <div class="stat-card"><div class="stat-label">Quantum-ajot</div><div class="stat-value">6</div><div class="stat-sub">Qiskit Aer simulaatio</div></div>
+            <div class="stat-card"><div class="stat-label">Kesken</div><div class="stat-value">2</div><div class="stat-sub">Odottaa jatkamista</div></div>
+          </div>
+          <div class="section-head">
+            <div class="section-title">Viimeisimmät ajot</div>
+            <button class="section-action">Näytä kaikki</button>
+          </div>
+          <div class="job-table">
+            <div class="jt-head">
+              <div class="jt-hcell">Analyysi</div><div class="jt-hcell">Solver</div><div class="jt-hcell">Tila</div><div class="jt-hcell">Kesto</div><div class="jt-hcell">Ajettu</div><div class="jt-hcell"></div>
+            </div>
+            <div class="jt-row" onclick="showScreen('wizard'); setStep(7)">
+              <div><div class="jt-name">Insurance loss sim</div><div class="jt-sub">insurance_loss_mc</div></div>
+              <div><span class="badge badge-classical">Classical</span></div>
+              <div><span class="badge badge-complete">Valmis</span></div>
+              <div class="jt-mono">2.3s</div><div class="jt-cell">3 pv sitten</div>
+              <div><button class="ds-action" onclick="showScreen('wizard'); setStep(7)">Avaa</button></div>
+            </div>
+            <div class="jt-row">
+              <div><div class="jt-name">Qiskit option pricing</div><div class="jt-sub">qiskit_option_pricing_demo</div></div>
+              <div><span class="badge badge-quantum">Quantum</span></div>
+              <div><span class="badge badge-complete">Valmis</span></div>
+              <div class="jt-mono">8.7s</div><div class="jt-cell">1 vk sitten</div>
+              <div><button class="ds-action">Avaa</button></div>
+            </div>
+            <div class="jt-row">
+              <div><div class="jt-name">Credit VAR baseline</div><div class="jt-sub">credit_risk_mc</div></div>
+              <div><span class="badge badge-classical">Classical</span></div>
+              <div><span class="badge badge-complete">Valmis</span></div>
+              <div class="jt-mono">1.8s</div><div class="jt-cell">2 vk sitten</div>
+              <div><button class="ds-action">Avaa</button></div>
+            </div>
+            <div class="jt-row" onclick="showScreen('wizard')">
+              <div><div class="jt-name">Option pricing — Q4</div><div class="jt-sub">mc_option_pricing</div></div>
+              <div><span class="badge badge-classical">Classical</span></div>
+              <div><span class="badge badge-in-progress">Kesken</span></div>
+              <div class="jt-mono">—</div><div class="jt-cell">tänään</div>
+              <div><button class="ds-action" onclick="showScreen('wizard')">Jatka</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WIZARD -->
+      <div class="screen" id="screen-wizard">
+        <div class="wizard-wrap">
+          <div class="wizard-main">
+            <div class="step-bar">
+              <div class="step-bar-inner">
+                <div class="step-item done" onclick="setStep(0)"><div class="step-circle">✓</div><div class="step-label">Määrittely</div></div>
+                <div class="step-item done" onclick="setStep(1)"><div class="step-circle">✓</div><div class="step-label">Data</div></div>
+                <div class="step-item active" id="step-ind-2" onclick="setStep(2)"><div class="step-circle">3</div><div class="step-label">Profilointi</div></div>
+                <div class="step-item" id="step-ind-3" onclick="setStep(3)"><div class="step-circle">4</div><div class="step-label">Solver</div></div>
+                <div class="step-item" id="step-ind-4" onclick="setStep(4)"><div class="step-circle">5</div><div class="step-label">Mapping</div></div>
+                <div class="step-item" id="step-ind-5" onclick="setStep(5)"><div class="step-circle">6</div><div class="step-label">Konfiguraatio</div></div>
+                <div class="step-item" id="step-ind-6" onclick="setStep(6)"><div class="step-circle">7</div><div class="step-label">Suoritus</div></div>
+                <div class="step-item" id="step-ind-7" onclick="setStep(7)"><div class="step-circle">8</div><div class="step-label">Tulokset</div></div>
+              </div>
+            </div>
+
+            <div class="wizard-body">
+              <!-- Step 0 -->
+              <div class="wizard-step" id="wstep-0">
+                <div class="ws-title">Kuvaa analyysitarpeesi</div>
+                <div class="ws-desc">Kerro omin sanoin mitä haluat analysoida. Tekoälyavustaja auttaa muotoilemaan ongelman ja ehdottaa sopivaa solver-tyyppiä.</div>
+                <div class="chat-area">
+                  <div class="chat-msg"><div class="chat-avatar ai">AI</div><div class="chat-bubble ai">Hei! Olen täällä auttamassa analyysin määrittelyssä. Minkälainen kvantitatiivinen ongelma sinulla on mielessä? Voin auttaa tunnistamaan sopivan lähestymistavan — klassinen Monte Carlo, kvantti-simulaatio tai muu menetelmä.</div></div>
+                  <div class="chat-msg"><div class="chat-avatar user">JP</div><div class="chat-bubble user">Haluaisin hinnoitella eurooppalaisen call-option portfolion Q4 datalla, noin 10 000 simulaatiolla.</div></div>
+                  <div class="chat-msg"><div class="chat-avatar ai">AI</div><div class="chat-bubble ai">Loistava käyttötapaus. Tähän sopii hyvin <strong>mc_option_pricing</strong> — klassinen Monte Carlo option-hinnoitteluun. Tarvitset datan: spot-hinta, toteutushinta, volatiliteetti, riskitön korko ja maturiteetti. Haluatko myös vertailla <strong>qiskit_option_pricing_demo</strong> tulokseen?</div></div>
+                </div>
+                <div class="chat-input-row">
+                  <input type="text" placeholder="Kirjoita lisätietoja tai kysymyksiä..." />
+                  <button class="send-btn">Lähetä</button>
+                </div>
+                <div class="suggestion-chips">
+                  <div class="chip">Option pricing</div>
+                  <div class="chip">Credit risk / VaR</div>
+                  <div class="chip">Insurance loss simulation</div>
+                  <div class="chip">Quantum-vertailu</div>
+                </div>
+              </div>
+
+              <!-- Step 1 -->
+              <div class="wizard-step" id="wstep-1">
+                <div class="ws-title">Lataa data</div>
+                <div class="ws-desc">Solver odottaa: spot_price, strike, volatility, risk_free_rate, maturity. CSV tai JSON. Alkuperäinen tiedosto säilytetään muuttumattomana.</div>
+                <div class="upload-zone">
+                  <div class="upload-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 13V4M6 7l4-4 4 4M4 16h12" stroke="var(--q-accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                  <div class="upload-title">Raahaa tiedosto tähän tai klikkaa</div>
+                  <div class="upload-sub">CSV, JSON — max 50 MB</div>
+                </div>
+                <div class="data-preview">
+                  <div class="dp-header"><div class="dp-filename">options_q4_2024.csv</div><div class="dp-badge">847 riviä · 6 saraketta · 24 KB</div></div>
+                  <div class="dp-table-wrap">
+                    <table class="dp-table">
+                      <thead><tr><th>spot_price</th><th>strike</th><th>volatility</th><th>risk_free_rate</th><th>maturity</th><th>type</th></tr></thead>
+                      <tbody>
+                        <tr><td>142.50</td><td>145.00</td><td>0.2341</td><td>0.0425</td><td>0.25</td><td>call</td></tr>
+                        <tr><td>138.90</td><td>140.00</td><td>0.2187</td><td>0.0425</td><td>0.50</td><td>call</td></tr>
+                        <tr><td>151.20</td><td>155.00</td><td>0.2560</td><td>0.0425</td><td>0.25</td><td>call</td></tr>
+                        <tr><td>139.75</td><td>135.00</td><td>0.2210</td><td>0.0425</td><td>0.75</td><td>call</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 2 -->
+              <div class="wizard-step active" id="wstep-2">
+                <div class="ws-title">Datan profilointi ja laaduntarkistus</div>
+                <div class="ws-desc">Järjestelmä on analysoinut datasi automaattisesti. Tarkista havainnot ennen kuin jatkat.</div>
+                <div class="quality-alerts">
+                  <div class="qa-item ok"><div class="qa-dot"></div><div>847 riviä, 6 saraketta. Ei duplikaatteja. Kaikki pakolliset kentät löytyivät.</div></div>
+                  <div class="qa-item warn"><div class="qa-dot"></div><div>Sarake <strong>volatility</strong>: 3 arvoa yli 0.8 — mahdollisesti virheellistä dataa. Suositellaan tarkistamaan.</div></div>
+                  <div class="qa-item ok"><div class="qa-dot"></div><div>Sarake <strong>maturity</strong>: tulkittu vuosina (0.25 = 3kk). Solver odottaa samaa formaattia — yhteensopiva.</div></div>
+                </div>
+                <div class="data-preview">
+                  <div class="dp-header"><div class="dp-filename">Profiiliraportti</div></div>
+                  <table class="dp-table" style="width:100%">
+                    <thead><tr><th>Sarake</th><th>Tyyppi</th><th>Puuttuvat</th><th>Min</th><th>Max</th><th>Mediaani</th></tr></thead>
+                    <tbody>
+                      <tr><td>spot_price</td><td>float64</td><td>0</td><td>102.3</td><td>198.7</td><td>141.2</td></tr>
+                      <tr><td>strike</td><td>float64</td><td>0</td><td>100.0</td><td>200.0</td><td>142.5</td></tr>
+                      <tr><td>volatility</td><td>float64</td><td>0</td><td>0.12</td><td>0.94</td><td>0.23</td></tr>
+                      <tr><td>risk_free_rate</td><td>float64</td><td>0</td><td>0.04</td><td>0.05</td><td>0.0425</td></tr>
+                      <tr><td>maturity</td><td>float64</td><td>0</td><td>0.08</td><td>2.0</td><td>0.50</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Step 3 -->
+              <div class="wizard-step" id="wstep-3">
+                <div class="ws-title">Valitse solver</div>
+                <div class="ws-desc">Tekoäly on analysoinut datasi ja ongelman kuvauksen. Alla ehdotetut solverit — valitse yksi jatkaaksesi.</div>
+                <div class="ai-rec-pill">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.2"/><path d="M7 4v3.5l2 1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                  AI suosittelee: <strong>mc_option_pricing</strong> — sopii dataan ja 10 000 simulaation tarpeeseen.
+                </div>
+                <div class="solver-grid">
+                  <div class="solver-card selected">
+                    <div class="sc-top"><div><div class="sc-name">mc_option_pricing</div><div class="sc-domain">Trading / Option pricing</div></div><span class="sc-type-badge sc-type-classical">Classical</span></div>
+                    <div class="sc-desc">Monte Carlo -simulaatio eurooppalaisten optioiden hinnoitteluun. Tuottaa odotetun hinnan, luottamusvälin ja jakaumasumman.</div>
+                    <div class="sc-metrics"><div class="sc-metric">Simulaatiot: <span>1k–100k</span></div><div class="sc-metric">Kesto: <span>~2s</span></div></div>
+                  </div>
+                  <div class="solver-card recommended">
+                    <div class="sc-top"><div><div class="sc-name">qiskit_option_pricing_demo</div><div class="sc-domain">Quantum Finance Demo</div></div><span class="sc-type-badge sc-type-quantum">Quantum</span></div>
+                    <div class="sc-desc">Qiskit + Aer -pohjainen kvanttisimulaatio. Näyttää piirin, transpilointisumman ja counts-datan. Vertailukelpoinen klassiseen.</div>
+                    <div class="sc-metrics"><div class="sc-metric">Shots: <span>1k–8k</span></div><div class="sc-metric">Kesto: <span>~8s</span></div></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 4 -->
+              <div class="wizard-step" id="wstep-4">
+                <div class="ws-title">Kenttien mappaus</div>
+                <div class="ws-desc">Yhdistä datasarakkeesi solverin vaatimiin kenttiin. AI on ehdottanut mappauksia automaattisesti — tarkista ja korjaa tarvittaessa.</div>
+                <div class="mapping-table">
+                  <div class="mt-head"><div class="mt-hc">Solverin kenttä</div><div class="mt-hc">Tyyppi</div><div class="mt-hc">Data-sarake</div><div class="mt-hc">Tila</div></div>
+                  <div class="mt-row"><div class="mt-cell">spot_price</div><div><span class="mt-type">float</span></div><div><select class="mt-select mapped"><option>spot_price</option></select></div><div><span class="badge badge-complete">✓ Mappattu</span></div></div>
+                  <div class="mt-row"><div class="mt-cell">strike</div><div><span class="mt-type">float</span></div><div><select class="mt-select mapped"><option>strike</option></select></div><div><span class="badge badge-complete">✓ Mappattu</span></div></div>
+                  <div class="mt-row"><div class="mt-cell">volatility</div><div><span class="mt-type">float [0–1]</span></div><div><select class="mt-select mapped"><option>volatility</option></select></div><div><span class="badge badge-in-progress">! Tarkista</span></div></div>
+                  <div class="mt-row"><div class="mt-cell">risk_free_rate</div><div><span class="mt-type">float</span></div><div><select class="mt-select mapped"><option>risk_free_rate</option></select></div><div><span class="badge badge-complete">✓ Mappattu</span></div></div>
+                  <div class="mt-row"><div class="mt-cell">maturity</div><div><span class="mt-type">float (vuosia)</span></div><div><select class="mt-select mapped"><option>maturity</option></select></div><div><span class="badge badge-complete">✓ Mappattu</span></div></div>
+                </div>
+              </div>
+
+              <!-- Step 5 -->
+              <div class="wizard-step" id="wstep-5">
+                <div class="ws-title">Ajon konfiguraatio</div>
+                <div class="ws-desc">Aseta simulaation parametrit. Oletusarvot ovat solver-suositusten mukaisia.</div>
+                <div style="background:var(--q-card);border:0.5px solid var(--q-border);border-radius:var(--q-rl);padding:20px;margin-bottom:16px;">
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div><label style="font-size:12px;font-weight:500;color:var(--q-muted);display:block;margin-bottom:6px;">Simulaatioita (simulations)</label><input type="number" value="10000" style="width:100%;padding:8px 10px;font-size:13px;border:0.5px solid var(--q-border-s);border-radius:var(--q-r);background:var(--q-surface);color:var(--q-text);font-family:var(--sans);"></div>
+                    <div><label style="font-size:12px;font-weight:500;color:var(--q-muted);display:block;margin-bottom:6px;">Satunnainen siemen (seed)</label><input type="number" value="42" style="width:100%;padding:8px 10px;font-size:13px;border:0.5px solid var(--q-border-s);border-radius:var(--q-r);background:var(--q-surface);color:var(--q-text);font-family:var(--sans);"></div>
+                  </div>
+                  <div style="margin-top:16px;"><label style="font-size:12px;font-weight:500;color:var(--q-muted);display:block;margin-bottom:6px;">Backend</label><select style="padding:8px 10px;font-size:13px;border:0.5px solid var(--q-border-s);border-radius:var(--q-r);background:var(--q-surface);color:var(--q-text);font-family:var(--sans);"><option>local_simulator (Cloud Run Python)</option></select></div>
+                </div>
+                <div style="background:var(--q-success-bg);border:0.5px solid rgba(30,120,70,0.2);border-radius:var(--q-r);padding:12px 16px;font-size:12px;color:var(--q-success);">Kaikki kentät validoitu. Voit käynnistää ajon.</div>
+              </div>
+
+              <!-- Step 6 -->
+              <div class="wizard-step" id="wstep-6">
+                <div class="ws-title">Suoritus</div>
+                <div class="ws-desc">Ajo on käynnissä. Seuraa edistymistä alla.</div>
+                <div class="exec-layout">
+                  <div class="exec-card">
+                    <div class="ec-head"><div class="ec-title">Vaihetimeline</div><span class="badge badge-in-progress">Käynnissä</span></div>
+                    <div class="ec-body">
+                      <div class="timeline-item"><div class="tl-dot-wrap"><div class="tl-dot done"></div><div class="tl-line"></div></div><div><div class="tl-label">Datan validointi</div><div class="tl-meta">0.1s · OK</div></div></div>
+                      <div class="timeline-item"><div class="tl-dot-wrap"><div class="tl-dot done"></div><div class="tl-line"></div></div><div><div class="tl-label">Mappauksen soveltaminen</div><div class="tl-meta">0.2s · 847 riviä</div></div></div>
+                      <div class="timeline-item"><div class="tl-dot-wrap"><div class="tl-dot active"></div><div class="tl-line"></div></div><div><div class="tl-label">Monte Carlo simulaatio</div><div class="tl-meta">Käynnissä… 10 000 polkua</div></div></div>
+                      <div class="timeline-item"><div class="tl-dot-wrap"><div class="tl-dot pending"></div><div class="tl-line"></div></div><div><div class="tl-label">Tulosten laskenta</div><div class="tl-meta">Odottaa</div></div></div>
+                      <div class="timeline-item"><div class="tl-dot-wrap"><div class="tl-dot pending"></div></div><div><div class="tl-label">Result schema -tallennus</div><div class="tl-meta">Odottaa</div></div></div>
+                    </div>
+                  </div>
+                  <div class="exec-card">
+                    <div class="ec-head"><div class="ec-title">Live-lokit</div></div>
+                    <div class="ec-body">
+                      <div class="log-area">
+                        <div class="log-line info">[INFO] Session loaded: opt_q4_2024</div>
+                        <div class="log-line ok">[OK] Data validation passed (847 rows)</div>
+                        <div class="log-line ok">[OK] Mapping applied: 5/5 fields</div>
+                        <div class="log-line info">[INFO] Solver: mc_option_pricing v1.0</div>
+                        <div class="log-line info">[INFO] Starting simulation: n=10000, seed=42</div>
+                        <div class="log-line warn">[WARN] 3 rows with volatility &gt; 0.8 — included but flagged</div>
+                        <div class="log-line">[RUN] Batch 1/10 complete (1000 paths)</div>
+                        <div class="log-line">[RUN] Batch 2/10 complete (2000 paths)</div>
+                        <div class="log-line">[RUN] Batch 3/10 running…</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 7 -->
+              <div class="wizard-step" id="wstep-7">
+                <div class="ws-title">Tulokset</div>
+                <div class="ws-desc">Solver: <strong>mc_option_pricing v1.0</strong> · 847 options · 10 000 simulaatiota · seed 42 · Cloud Run · 2.3s</div>
+                <div class="result-layout">
+                  <div class="result-card"><div class="rc-label">Odotettu option-hinta</div><div class="rc-value">€7.82</div><div class="rc-sub">Keskiarvo kaikista 847 optiosta</div></div>
+                  <div class="result-card"><div class="rc-label">95% luottamusväli</div><div class="rc-value">±0.14</div><div class="rc-sub">[7.68 – 7.96]</div></div>
+                  <div class="result-card"><div class="rc-label">Jakaumakeskihajonta</div><div class="rc-value">2.31</div><div class="rc-sub">σ simuloidusta jakaumasta</div></div>
+                  <div class="result-card"><div class="rc-label">Onnistuneet simulaatiot</div><div class="rc-value">10 000</div><div class="rc-sub">100% onnistumisaste</div></div>
+                </div>
+                <div class="chart-bar-area">
+                  <div class="section-title" style="font-size:12px;color:var(--q-muted)">Simuloitu jakaumahistogrammi (option-hinnat)</div>
+                  <div class="chart-bars">
+                    <div class="chart-bar primary" style="height:20%"></div><div class="chart-bar primary" style="height:35%"></div><div class="chart-bar primary" style="height:55%"></div><div class="chart-bar primary" style="height:72%"></div><div class="chart-bar primary" style="height:88%"></div><div class="chart-bar primary" style="height:100%"></div><div class="chart-bar primary" style="height:90%"></div><div class="chart-bar primary" style="height:75%"></div><div class="chart-bar primary" style="height:60%"></div><div class="chart-bar primary" style="height:42%"></div><div class="chart-bar primary" style="height:28%"></div><div class="chart-bar primary" style="height:15%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="wizard-footer">
+              <div class="wf-left">
+                <button class="btn-ghost" onclick="prevStep()">← Takaisin</button>
+                <div class="wf-step-info" id="step-info">Vaihe 3 / 8 — Profilointi</div>
+              </div>
+              <button class="btn-primary" onclick="nextStep()">Jatka →</button>
+            </div>
+          </div>
+
+          <!-- AI Panel -->
+          <div class="ai-panel">
+            <div class="ap-header">
+              <div class="ap-title"><div class="ai-dot"></div>AI-avustaja</div>
+              <div class="ap-scope">Konteksti: tämä sessio</div>
+            </div>
+            <div class="ap-messages">
+              <div class="ap-msg ai">Datasi näyttää hyvältä. Huomioin 3 volatiliteetti-arvoa jotka ylittävät 0.8 — nämä saattavat vaikuttaa simulaation häntään. Haluatko suodattaa ne pois vai pitää mukana?</div>
+              <div class="ap-msg user">Pidetään mukana, mutta flagataan.</div>
+              <div class="ap-msg ai">Selvä — ne on flagattu lokiin ja result schemaan. Profiili muuten puhdas. Kun olet valmis, jatka solver-valintaan.</div>
+            </div>
+            <div class="ap-quick-qs">
+              <div class="ap-q">Mitä volatiliteetti-arvo 0.94 tarkoittaa käytännössä?</div>
+              <div class="ap-q">Kuinka monta simulaatiota riittää tähän dataan?</div>
+              <div class="ap-q">Miten tulos muuttuu quantum-solverilla?</div>
+            </div>
+            <div class="ap-input-wrap">
+              <input type="text" placeholder="Kysymys datasta tai solverista..." />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SOLVERS -->
+      <div class="screen" id="screen-solvers">
+        <div class="dashboard-header">
+          <div class="dh-title">Solver-rekisteri</div>
+          <div class="dh-sub">V1 solverit — kaikki dokumentoitu, versionoitu ja testattu</div>
+        </div>
+        <div class="solvers-page">
+          <div class="solver-browser-card">
+            <div class="sbc-header">
+              <div class="sbc-name-wrap"><div class="sbc-name">mc_option_pricing</div><span class="badge badge-classical">Classical</span><span style="font-size:11px;color:var(--q-hint);font-family:var(--mono)">v1.0</span></div>
+              <span class="badge badge-complete">active-backend</span>
+            </div>
+            <div class="sbc-body">
+              <div class="sbc-desc">Monte Carlo -pohjainen eurooppalaisten optioiden hinnoittelu. Tuottaa odotetun hinnan, luottamusvälin ja jakaumasumman. Käyttää numpy-pohjaista vektorisoitua simulaatiota.</div>
+              <div class="sbc-meta-row">
+                <div class="sbc-meta-item"><strong>Domain</strong>Trading / Option pricing</div>
+                <div class="sbc-meta-item"><strong>Result type</strong>distribution_result</div>
+                <div class="sbc-meta-item"><strong>Menetelmä</strong>Monte Carlo</div>
+              </div>
+              <div class="code-snippet">
+                <span class="cs-com"># Pakolliset inputit</span><br>
+                <span class="cs-plain">inputs = {</span><br>
+                <span class="cs-plain">&nbsp;&nbsp;</span><span class="cs-str">"spot_price"</span><span class="cs-plain">: </span><span class="cs-num">142.50</span><span class="cs-plain">,</span><br>
+                <span class="cs-plain">&nbsp;&nbsp;</span><span class="cs-str">"strike"</span><span class="cs-plain">: </span><span class="cs-num">145.00</span><span class="cs-plain">,</span><br>
+                <span class="cs-plain">&nbsp;&nbsp;</span><span class="cs-str">"volatility"</span><span class="cs-plain">: </span><span class="cs-num">0.2341</span><span class="cs-plain">,</span><br>
+                <span class="cs-plain">&nbsp;&nbsp;</span><span class="cs-str">"risk_free_rate"</span><span class="cs-plain">: </span><span class="cs-num">0.0425</span><span class="cs-plain">,</span><br>
+                <span class="cs-plain">&nbsp;&nbsp;</span><span class="cs-str">"maturity"</span><span class="cs-plain">: </span><span class="cs-num">0.25</span><span class="cs-plain">,</span><br>
+                <span class="cs-plain">&nbsp;&nbsp;</span><span class="cs-str">"simulations"</span><span class="cs-plain">: </span><span class="cs-num">10000</span><span class="cs-plain">,</span><br>
+                <span class="cs-plain">&nbsp;&nbsp;</span><span class="cs-str">"seed"</span><span class="cs-plain">: </span><span class="cs-num">42</span><br>
+                <span class="cs-plain">}</span>
+              </div>
+            </div>
+          </div>
+          <div class="solver-browser-card">
+            <div class="sbc-header">
+              <div class="sbc-name-wrap"><div class="sbc-name">qiskit_option_pricing_demo</div><span class="badge badge-quantum">Quantum</span><span style="font-size:11px;color:var(--q-hint);font-family:var(--mono)">v1.0</span></div>
+              <span class="badge badge-complete">active-backend</span>
+            </div>
+            <div class="sbc-body">
+              <div class="sbc-desc">Qiskit + Aer -pohjainen kvanttisimulaatioDemo optiohinnoitteluun. Tuottaa piiridata, transpilointisumman, counts-datan ja estimaattorin outputit. Vertailukelpoinen klassiseen solveriin.</div>
+              <div class="sbc-meta-row">
+                <div class="sbc-meta-item"><strong>Domain</strong>Quantum Finance</div>
+                <div class="sbc-meta-item"><strong>Result type</strong>quantum_estimation_result</div>
+                <div class="sbc-meta-item"><strong>Backend</strong>local_simulator (Aer)</div>
+              </div>
+              <div class="code-snippet">
+                <span class="cs-com"># Quantum-spesifit parametrit</span><br>
+                <span class="cs-plain">quantum_config = {</span><br>
+                <span class="cs-plain">&nbsp;&nbsp;</span><span class="cs-str">"shots"</span><span class="cs-plain">: </span><span class="cs-num">4096</span><span class="cs-plain">,</span><br>
+                <span class="cs-plain">&nbsp;&nbsp;</span><span class="cs-str">"backend_mode"</span><span class="cs-plain">: </span><span class="cs-str">"local_simulator"</span><span class="cs-plain">,</span><br>
+                <span class="cs-plain">&nbsp;&nbsp;</span><span class="cs-str">"seed"</span><span class="cs-plain">: </span><span class="cs-num">42</span><br>
+                <span class="cs-plain">}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DATA -->
+      <div class="screen" id="screen-data">
+        <div class="dashboard-header">
+          <div class="dh-title">Datahallinta</div>
+          <div class="dh-sub">Ladatut datasetit ja niiden profiiliraportit</div>
+        </div>
+        <div class="data-page">
+          <div class="section-head">
+            <div class="section-title">Datasetit (4)</div>
+            <button class="section-action" onclick="showScreen('wizard'); setStep(1)">+ Lataa uusi</button>
+          </div>
+          <div class="dataset-item"><div class="ds-icon">📊</div><div class="ds-info"><div class="ds-name">options_q4_2024.csv</div><div class="ds-meta-row"><span class="ds-meta">847 riviä · 6 saraketta · 24 KB</span><span class="ds-meta">Ladattu tänään</span><span class="badge badge-in-progress">Käytössä</span></div></div><div class="ds-actions"><button class="ds-action">Profiili</button><button class="ds-action">Lataa</button></div></div>
+          <div class="dataset-item"><div class="ds-icon">📊</div><div class="ds-info"><div class="ds-name">credit_portfolio_2024.json</div><div class="ds-meta-row"><span class="ds-meta">210 riviä · 8 saraketta · 18 KB</span><span class="ds-meta">3 pv sitten</span><span class="badge badge-complete">Profiloitu</span></div></div><div class="ds-actions"><button class="ds-action">Profiili</button><button class="ds-action">Lataa</button></div></div>
+          <div class="dataset-item"><div class="ds-icon">📄</div><div class="ds-info"><div class="ds-name">insurance_policies_q3.csv</div><div class="ds-meta-row"><span class="ds-meta">1 240 riviä · 5 saraketta · 67 KB</span><span class="ds-meta">1 vk sitten</span><span class="badge badge-complete">Profiloitu</span></div></div><div class="ds-actions"><button class="ds-action">Profiili</button><button class="ds-action">Lataa</button></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentStep = 2;
+  const stepLabels = [
+    'Vaihe 1 / 8 — Ongelman määrittely',
+    'Vaihe 2 / 8 — Datan lataus',
+    'Vaihe 3 / 8 — Profilointi',
+    'Vaihe 4 / 8 — Solver-valinta',
+    'Vaihe 5 / 8 — Kenttien mappaus',
+    'Vaihe 6 / 8 — Ajon konfiguraatio',
+    'Vaihe 7 / 8 — Suoritus',
+    'Vaihe 8 / 8 — Tulokset'
+  ];
+
+  function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    const s = document.getElementById('screen-' + name);
+    if (s) s.classList.add('active');
+    const tabs = document.querySelectorAll('.nav-tab');
+    const map = { dashboard: 0, wizard: 1, solvers: 2, data: 3 };
+    if (map[name] !== undefined) tabs[map[name]].classList.add('active');
+  }
+
+  function setStep(n) {
+    currentStep = n;
+    document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
+    const ws = document.getElementById('wstep-' + n);
+    if (ws) ws.classList.add('active');
+
+    // Update step bar
+    document.querySelectorAll('.step-item').forEach((item, i) => {
+      item.classList.remove('active', 'done');
+      if (i < n) item.classList.add('done');
+      else if (i === n) item.classList.add('active');
+      const circle = item.querySelector('.step-circle');
+      if (i < n) circle.textContent = '✓';
+      else circle.textContent = i + 1;
+    });
+
+    document.getElementById('step-info').textContent = stepLabels[n] || '';
+    showScreen('wizard');
+  }
+
+  function nextStep() { if (currentStep < 7) setStep(currentStep + 1); }
+  function prevStep() { if (currentStep > 0) setStep(currentStep - 1); }
+</script>
+</body>
+</html>

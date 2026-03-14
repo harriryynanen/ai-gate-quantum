@@ -1,0 +1,101 @@
+:root {
+    --card-bg: #ffffff;
+    --card-border: #e5e7eb;
+    --table-header-bg: #f9fafb;
+    --select-border: #d1d5db;
+    --select-focus-border: #3b82f6;
+    --warning-bg: #fefce8;
+    --warning-border: #facc15;
+    --warning-text: #854d0e;
+    --error-bg: #ffe4e6; 
+    --error-border: #fca5a5;
+    --error-text: #b91c1c;
+}
+
+.map-data-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.card-style {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.mapping-instructions h3 {
+    margin-top: 0;
+}
+
+.mapping-table-container {
+    padding: 0;
+}
+
+.mapping-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mapping-table th,
+.mapping-table td {
+    padding: 16px 24px;
+    text-align: left;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.mapping-table thead {
+    background-color: var(--table-header-bg);
+}
+
+.mapping-table th {
+    font-weight: 600;
+}
+
+.arrow-column {
+    text-align: center !important;
+    font-size: 1.5em;
+    color: #9ca3af;
+}
+
+.source-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--select-border);
+    border-radius: 6px;
+}
+
+.source-select:focus {
+    outline: none;
+    border-color: var(--select-focus-border);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+.target-type {
+    color: #6b7280;
+    font-size: 0.9em;
+}
+
+.validation-notice {
+    border: 1px solid;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+}
+
+.validation-notice p {
+    margin: 0;
+}
+
+.warning-notice {
+    background-color: var(--warning-bg);
+    border-color: var(--warning-border);
+    color: var(--warning-text);
+}
+
+.error-notice {
+    background-color: var(--error-bg);
+    border-color: var(--error-border);
+    color: var(--error-text);
+}

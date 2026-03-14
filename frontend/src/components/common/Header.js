@@ -11,7 +11,7 @@ const Header = () => {
           {/* Logo and Branding */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2 text-gray-800 hover:text-indigo-600 transition">
-              <BeakerIcon className="h-8 w-8 text-indigo-600" />
+              <BeakerIcon className="h-6 w-6 text-indigo-600" />
               <span className="text-xl font-bold">QuantumFlow</span>
             </Link>
           </div>
@@ -25,7 +25,7 @@ const Header = () => {
 
           {/* User Profile Section */}
           <div className="flex items-center">
-             <UserCircleIcon className="h-8 w-8 text-gray-400 hover:text-gray-600 transition cursor-pointer"/>
+             <UserCircleIcon className="h-6 w-6 text-gray-400 hover:text-gray-600 transition cursor-pointer"/>
           </div>
         </div>
       </div>

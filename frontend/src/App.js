@@ -1,31 +1,46 @@
-
 import React from 'react';
-import { Route, Routes } from 'react-router-dom';
-import Header from './components/common/Header';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link
+} from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
-import DataPreparation from './pages/DataPreparation.js';
-import JobConfiguration from './pages/JobConfiguration.js';
-import Execution from './pages/Execution.js';
-import Results from './pages/Results.js';
-import History from './pages/History.js';
-import MainLayout from './layouts/MainLayout.js';
+import AIChatWorkspace from './pages/AIChatWorkspace';
+import JobConfiguration from './pages/JobConfiguration';
+import ExecutionMonitor from './pages/ExecutionMonitor';
+import ResultPage from './pages/ResultPage';
+import JobHistory from './pages/JobHistory';
 import './App.css';
 
-const App = () => {
+function App() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <Header />
-      <MainLayout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/data-preparation" element={<DataPreparation />} />
-          <Route path="/job-configuration" element={<JobConfiguration />} />
-          <Route path="/execution" element={<Execution />} />
-          <Route path="/results" element={<Results />} />
-          <Route path="/history" element={<History />} />
-        </Routes>
-      </MainLayout>
-    </div>
+    <Router>
+      <div className="App">
+        <nav>
+          <ul>
+            <li><Link to="/">Dashboard</Link></li>
+            <li><Link to="/chat">AI Chat</Link></li>
+            {/* Link to Data Preparation removed as it is now the first step in Job Configuration */}
+            <li><Link to="/config">Configure Job</Link></li>
+            <li><Link to="/monitor">Execution Monitor</Link></li>
+            <li><Link to="/results">Result Page</Link></li>
+            <li><Link to="/history">Job History</Link></li>
+          </ul>
+        </nav>
+        <main>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/chat" element={<AIChatWorkspace />} />
+            {/* Route for Data Preparation removed */}
+            <Route path="/config" element={<JobConfiguration />} />
+            <Route path="/monitor" element={<ExecutionMonitor />} />
+            <Route path="/results" element={<ResultPage />} />
+            <Route path="/history" element={<JobHistory />} />
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
 }
 

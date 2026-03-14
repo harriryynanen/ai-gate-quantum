@@ -1,0 +1,70 @@
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --q-bg: #F4F3EF;
+    --q-surface: #ECEAE4;
+    --q-card: #FFFFFF;
+    --q-border: rgba(0,0,0,0.10);
+    --q-border-s: rgba(0,0,0,0.18);
+    --q-text: #1A1A18;
+    --q-muted: #5A5A56;
+    --q-hint: #9A9A94;
+    --q-accent: #185FA5;
+    --q-accent-bg: #E6F1FB;
+    --q-accent-text: #0C447C;
+    --q-success: #1A7040;
+    --q-success-bg: #EAF3DE;
+    --q-warn: #8A5800;
+    --q-warn-bg: #FAEEDA;
+    --q-danger: #A32D2D;
+    --q-danger-bg: #FCEBEB;
+    --q-quantum: #534AB7;
+    --q-quantum-bg: #EEEDFE;
+    --q-r: 8px;
+    --q-rl: 12px;
+    --mono: 'IBM Plex Mono', monospace;
+    --display: 'Syne', sans-serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --q-bg: #1A1A18;
+      --q-surface: #242420;
+      --q-card: #2C2C28;
+      --q-border: rgba(255,255,255,0.10);
+      --q-border-s: rgba(255,255,255,0.18);
+      --q-text: #E8E6DE;
+      --q-muted: #A0A098;
+      --q-hint: #606058;
+      --q-accent: #378ADD;
+      --q-accent-bg: #0C2A42;
+      --q-accent-text: #85B7EB;
+      --q-success: #56A870;
+      --q-success-bg: #173404;
+      --q-warn: #D4A84A;
+      --q-warn-bg: #2A1E08;
+      --q-danger: #E24B4A;
+      --q-danger-bg: #2A0C0C;
+      --q-quantum: #AFA9EC;
+      --q-quantum-bg: #1E1A40;
+    }
+  }
+
+  body {
+    font-family: var(--sans);
+    background-color: var(--q-bg);
+    color: var(--q-text);
+  }
+
+  .badge { font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+  .badge-in-progress { background: var(--q-warn-bg); color: var(--q-warn); }
+  .badge-complete { background: var(--q-success-bg); color: var(--q-success); }
+  .badge-quantum { background: var(--q-quantum-bg); color: var(--q-quantum); }
+  .badge-classical { background: var(--q-accent-bg); color: var(--q-accent-text); }
+
+  .btn-ghost { padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--q-muted); background: none; border: 0.5px solid var(--q-border-s); border-radius: var(--q-r); cursor: pointer; transition: all 0.12s; font-family: var(--sans); }
+  .btn-ghost:hover { color: var(--q-text); background: var(--q-surface); }
+  .btn-primary { padding: 8px 20px; font-size: 13px; font-weight: 500; color: #fff; background: var(--q-accent); border: none; border-radius: var(--q-r); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity 0.12s; font-family: var(--sans); }
+  .btn-primary:hover { opacity: 0.88; }

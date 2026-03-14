@@ -1,0 +1,173 @@
+:root {
+    --q-surface: #f9fafb;
+    --q-text: #374151;
+    --q-border: #e5e7eb;
+    --q-primary: #3b82f6;
+    --q-secondary: #f97316;
+    --q-highlight: #fefce8;
+}
+
+.results-page {
+    font-family: sans-serif;
+    color: var(--q-text);
+}
+
+.result-header {
+    background-color: var(--q-surface);
+    border-bottom: 1px solid var(--q-border);
+    padding: 24px;
+    margin-bottom: 16px;
+}
+
+.result-header h1 {
+    font-size: 2em;
+    margin: 0 0 8px 0;
+}
+
+.header-meta {
+    display: flex;
+    gap: 24px;
+    color: #6b7280;
+}
+
+.header-meta span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.result-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--q-border);
+    margin-bottom: 24px;
+}
+
+.tab-button {
+    padding: 12px 24px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 1em;
+    color: #6b7280;
+    border-bottom: 2px solid transparent;
+}
+
+.tab-button.active {
+    color: var(--q-primary);
+    border-bottom-color: var(--q-primary);
+    font-weight: 600;
+}
+
+.tab-content {
+    padding: 0 24px;
+}
+
+.tab-content h2 {
+    font-size: 1.5em;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--q-border);
+    padding-bottom: 8px;
+}
+
+.baseline-info {
+    background-color: var(--q-highlight);
+    border: 1px solid var(--q-border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 24px;
+}
+
+.baseline-info h4 {
+    margin-top: 0;
+}
+
+.transparency-section {
+    margin-bottom: 32px;
+}
+
+.transparency-section h3 {
+    font-size: 1.2em;
+    color: var(--q-primary);
+    margin-bottom: 8px;
+}
+
+.transparency-section ul {
+    list-style-position: inside;
+    padding-left: 0;
+}
+
+.transparency-section li {
+    background-color: var(--q-surface);
+    border: 1px solid var(--q-border);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+}
+
+.limitation-note {
+  background-color: #fff1f2 !important; /* Emphasize limitations */
+  border-color: #fecaca !important;
+}
+
+.solver-output h3 {
+    font-size: 1.2em;
+    margin-bottom: 16px;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.metric-item {
+    background-color: var(--q-surface);
+    border: 1px solid var(--q-border);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.metric-label {
+    color: #6b7280;
+    font-size: 0.9em;
+    margin-bottom: 4px;
+}
+
+.metric-value {
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.metric-value.primary {
+  color: var(--q-primary);
+}
+
+.metric-value.secondary {
+  color: var(--q-secondary);
+}
+
+.quantum-output .status-banner {
+    background-color: var(--q-highlight);
+    border: 1px solid #fcd34d;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.observed-states table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.observed-states th, .observed-states td {
+  padding: 8px 12px;
+  border: 1px solid var(--q-border);
+  text-align: left;
+}
+
+.observed-states th {
+  background-color: var(--q-surface);
+}

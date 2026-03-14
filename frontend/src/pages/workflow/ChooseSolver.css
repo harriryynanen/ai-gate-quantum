@@ -1,0 +1,154 @@
+:root {
+    --card-bg: #ffffff;
+    --card-border: #e5e7eb;
+    --card-hover-border: #9ca3af;
+    --filter-text-color: #6b7280;
+    --active-filter-bg: #3b82f6;
+    --type-classical-bg: #fee2e2;
+    --type-classical-text: #b91c1c;
+    --type-hybrid-bg: #fef9c3;
+    --type-hybrid-text: #854d0e;
+    --type-quantum-bg: #dbeafe;
+    --type-quantum-text: #1e40af;
+    --maturity-badge-bg: #e5e7eb;
+    --version-badge-bg: #f3f4f6;
+    --detail-section-bg: #f9fafb;
+    --suitability-hint-bg: #f0f9ff;
+    --suitability-hint-border: #bae6fd;
+}
+
+.choose-solver-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.solver-filters {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.solver-filters p {
+    color: var(--filter-text-color);
+    font-weight: 500;
+}
+
+.filter-button {
+    padding: 8px 16px;
+    border: 1px solid var(--card-border);
+    background-color: var(--card-bg);
+    border-radius: 9999px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.filter-button.active {
+    background-color: var(--active-filter-bg);
+    color: white;
+    border-color: var(--active-filter-bg);
+}
+
+.solver-list {
+    display: grid;
+    gap: 24px;
+}
+
+.solver-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 24px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.solver-card:hover {
+    border-color: var(--card-hover-border);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 16px;
+}
+
+.solver-name {
+    font-size: 1.4em;
+    font-weight: 600;
+}
+
+.solver-meta {
+    display: flex;
+    gap: 8px;
+}
+
+.meta-badge {
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.8em;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.meta-badge.type-classical {
+    background-color: var(--type-classical-bg);
+    color: var(--type-classical-text);
+}
+
+.meta-badge.type-hybrid {
+    background-color: var(--type-hybrid-bg);
+    color: var(--type-hybrid-text);
+}
+
+.meta-badge.type-quantum {
+    background-color: var(--type-quantum-bg);
+    color: var(--type-quantum-text);
+}
+
+.meta-badge.maturity {
+    background-color: var(--maturity-badge-bg);
+}
+
+.meta-badge.version {
+    background-color: var(--version-badge-bg);
+}
+
+.solver-description {
+    margin-bottom: 20px;
+}
+
+.solver-io {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.detail-section {
+    background-color: var(--detail-section-bg);
+    padding: 16px;
+    border-radius: 8px;
+}
+
+.detail-section h5 {
+    margin: 0 0 12px 0;
+}
+
+.detail-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.9em;
+}
+
+.suitability-hint {
+    background-color: var(--suitability-hint-bg);
+    border: 1px solid var(--suitability-hint-border);
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 0.9em;
+}

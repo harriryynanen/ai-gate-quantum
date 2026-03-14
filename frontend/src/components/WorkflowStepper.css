@@ -1,0 +1,90 @@
+:root {
+    --stepper-step-size: 32px;
+    --stepper-connector-height: 2px;
+    --stepper-active-color: #3b82f6;
+    --stepper-completed-color: #16a34a;
+    --stepper-upcoming-color: #e5e7eb;
+    --stepper-upcoming-text: #9ca3af;
+}
+
+.workflow-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 24px 0;
+    margin-bottom: 32px;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+}
+
+.step-number {
+    height: var(--stepper-step-size);
+    width: var(--stepper-step-size);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin-bottom: 8px;
+    border: 2px solid;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.step-label {
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+/* Step Statuses */
+.step.active .step-number {
+    background-color: white;
+    color: var(--stepper-active-color);
+    border-color: var(--stepper-active-color);
+}
+
+.step.active .step-label {
+    color: var(--stepper-active-color);
+    font-weight: 700;
+}
+
+.step.completed .step-number {
+    background-color: var(--stepper-completed-color);
+    color: white;
+    border-color: var(--stepper-completed-color);
+}
+
+.step.completed .step-label {
+    color: #374151;
+}
+
+.step.upcoming .step-number {
+    background-color: var(--stepper-upcoming-color);
+    color: var(--stepper-upcoming-text);
+    border-color: var(--stepper-upcoming-color);
+}
+
+.step.upcoming .step-label {
+    color: var(--stepper-upcoming-text);
+}
+
+.step-connector {
+    flex-grow: 1;
+    height: var(--stepper-connector-height);
+    background-color: var(--stepper-upcoming-color);
+    margin: 0 16px;
+    position: relative;
+    top: calc(-1 * (var(--stepper-step-size) / 2) - 8px); /* Align with the middle of the number */
+}
+
+/* Connector between two completed steps */
+.step.completed + .step-connector {
+    background-color: var(--stepper-completed-color);
+}

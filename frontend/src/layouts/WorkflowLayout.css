@@ -1,0 +1,30 @@
+
+.workflow-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--q-bg);
+}
+
+.step-bar {
+  padding: 16px 28px 0;
+  background: var(--q-card);
+  border-bottom: 0.5px solid var(--q-border);
+  flex-shrink: 0;
+}
+
+.workflow-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+}
+
+.workflow-footer {
+  padding: 14px 28px;
+  background: var(--q-card);
+  border-top: 0.5px solid var(--q-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
