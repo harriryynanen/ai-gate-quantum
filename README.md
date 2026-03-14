@@ -1,97 +1,146 @@
-# Quantum + AI POC Master Spec
+# AI-Gated Solver Routing (POC)
 
-Tämä paketti on **POC-määrittelydokumentti** verkkopalvelulle, joka yhdistää:
-- AI-ohjatun analyysikeskustelun
-- Python-pohjaisen laskennan
-- klassiset solverit
-- Qiskit + Aer -simulointiin perustuvan kvanttipolun
-- läpinäkyvän käyttöliittymän, jossa näkyvät data, mapping, koodi, lokit ja tulokset
+A proof-of-concept for routing analytical problems to the most suitable execution path — classical, hybrid, or quantum-simulated — using AI-assisted problem profiling and a controlled solver registry.
 
-## Tärkein periaate
+## Status
 
-Järjestelmä **ei** ole vapaan koodigeneroinnin agentti.
-Se on **solver-registryyn perustuva analytiikka-alusta**, jossa:
+This repository is an early-stage prototype.
 
-1. käyttäjä keskustelee AI:n kanssa
-2. data profiloidaan ja valmistellaan
-3. solver valitaan registryssä olevista vaihtoehdoista
-4. kaikki laskenta ajetaan Python-koodina
-5. kvanttipolku käyttää Qiskit + Aeria
-6. tulokset näytetään läpinäkyvästi
-7. tulossivulla on aina kontekstisidonnainen AI-paneeli
+- The core idea and architecture are defined
+- Parts of the implementation are still incomplete or experimental
+- The current quantum path is based on **Qiskit + Aer simulation**, not real QPU execution
+- This is **not production-ready software**
+- The repo should be read as a transparent experiment in solver routing and orchestration
 
-## Kenelle tämä paketti on tarkoitettu
+## Why this project exists
 
-- sinulle muistiksi ja päätösten lukitsemiseksi
-- Firebase/Gemini/Claude/ChatGPT/v0/Figma-tyyppisille AI-työkaluille lähtöaineistoksi
-- mahdolliselle kehittäjälle tai tiimille toteutuksen perustaksi
+A common intuition is that AI could simply generate the computation needed for a problem on demand.
 
-## Miten pakettia käytetään
+In practice, that approach becomes fragile very quickly:
+- solver logic may be inconsistent
+- execution paths are hard to validate
+- reproducibility suffers
+- “quantum” claims become easy to overstate
 
-### Jos ihminen lukee ensimmäistä kertaa
-Lue tässä järjestyksessä:
+This project explores a different approach:
+
+1. AI helps interpret and profile the problem
+2. the system maps the problem to a constrained set of registered solver paths
+3. execution happens through explicit and auditable solver logic
+4. results are presented with traceability rather than as a black box
+
+## Core hypothesis
+
+For analytical workflows, AI is more useful as a **problem-profiling and routing layer** than as a free-form generator of solver logic.
+
+In other words:
+- AI can help decide **which type of solver should be considered**
+- the actual execution should come from a **controlled solver registry**
+- every result should remain inspectable
+
+## Current scope
+
+This POC currently focuses on:
+
+- AI-assisted problem interpretation
+- registry-based solver selection
+- Python-based execution for registered solver paths
+- a quantum-simulated path via Qiskit + Aer
+- transparent output principles:
+  - input context
+  - mapping / interpretation
+  - selected solver path
+  - code and execution trace
+  - logs and result objects
+
+## What this is not
+
+This repository is **not**:
+
+- a “solve anything” platform
+- unrestricted AI code generation in the execution path
+- evidence that quantum is generally better than classical methods
+- real quantum hardware execution in the current phase
+- a polished end-user application
+
+## Design principles
+
+### 1. Controlled solver selection
+AI may assist with interpretation, but execution must go through explicit registered solver paths.
+
+### 2. Classical baseline matters
+The goal is not to force a quantum path. Classical methods should remain first-class and comparable.
+
+### 3. Transparency over magic
+The system should expose how a problem was interpreted, which solver path was selected, and what was executed.
+
+### 4. Credibility over hype
+If a workflow claims to use a quantum path, the supporting artifacts should make that claim inspectable.
+
+### 5. Narrow scope first
+The project is intentionally constrained. A small credible prototype is more valuable than a broad but vague platform concept.
+
+## Repository guide
+
+If you want to understand the project, start here:
+
 1. `00_scope/product_scope.md`
 2. `01_architecture/architecture_overview.md`
 3. `04_solvers/solver_registry_v1.md`
-4. `03_data/data_intake_and_preparation.md`
+4. `04_solvers/solver_plugin_contract.md`
 5. `05_ui/ui_master_spec.md`
 6. `07_quality/quantum_credibility_requirements.md`
 
-### Jos AI-työkalu saa tämän syötteenä
-Aloita näistä:
-1. `README.md`
-2. `08_state/current_state.yaml`
-3. `06_ai/ai_handoff_instructions.md`
-4. `00_scope/non_goals.md`
-5. `01_architecture/decisions_locked.md`
-6. `04_solvers/solver_plugin_contract.md`
-7. `05_ui/ui_master_spec.md`
+## Repository structure
 
-## Paketin rakenne
+- `00_scope/` – project scope, goals, and non-goals
+- `01_architecture/` – architecture overview and locked decisions
+- `02_platform/` – platform and infrastructure choices
+- `03_data/` – data intake, profiling, mapping, validation
+- `04_solvers/` – solver registry and execution contracts
+- `05_ui/` – UI and result-view principles
+- `06_ai/` – AI roles, constraints, and handoff instructions
+- `07_quality/` – testing and credibility requirements
+- `08_state/` – current state, roadmap, glossary
 
-### `00_scope/`
-POC:n tavoite, rajaus, ei-tavoitteet ja onnistumisen todennäköisyyden arvio.
+## Current limitations
 
-### `01_architecture/`
-Kokonaisarkkitehtuuri, päätetyt ratkaisut ja kuvat.
+At this stage, the main limitations are:
 
-### `02_platform/`
-Tekniset alustavalinnat: Firebase, Cloud Run, Supabase, autentikointi, virherajat.
+- implementation is incomplete
+- solver coverage is intentionally narrow
+- quantum execution is simulation-based
+- evaluation logic still needs stronger benchmarking against classical baselines
+- the project is better understood as an architectural and experimental prototype than as a finished application
 
-### `03_data/`
-Data intake, profilointi, mapping, transformaatio, validointi ja hyväksyntä.
+## Near-term goals
 
-### `04_solvers/`
-Solver registry, plugin contract, result schema -malli.
+The next milestones are:
 
-### `05_ui/`
-Käyttöliittymän master-spec ja tulosnäkymien periaatteet.
+- implement one narrow end-to-end example that actually runs
+- make solver eligibility rules explicit
+- compare candidate solver paths against a classical baseline
+- improve result traceability in the UI
+- tighten the distinction between classical, hybrid, and quantum-simulated paths
 
-### `06_ai/`
-AI-roolit, guardrailit, AI-handoff-ohje ja Firebase AI -syöttöohje.
+## Notes for collaborators
 
-### `07_quality/`
-Testistrategia ja kvanttiosuuden uskottavuuskriteerit.
+This repo is meant to support disciplined experimentation.
 
-### `08_state/`
-Glossary, roadmap ja nykytila koneluettavassa muodossa.
+Please do not expand the concept into a broad autonomous agent system without preserving the core constraints:
+- controlled solver registry
+- explicit execution paths
+- transparent outputs
+- narrow, testable scope
 
-## Kriittiset rajaukset
+## Notes for AI tools
 
-- Ei vapaan Python- tai Qiskit-koodin generointia tuotantopolussa.
-- Ei oikeaa QPU-ajoa POC-vaiheessa.
-- Ei yleistä “kaikki analyysit” -alustaa.
-- Ei satoja solvereita; vain pieni V1 registry.
-- Ei mustaa laatikkoa: data, mapping, koodi ja lokit pitää näyttää käyttäjälle.
+If an AI tool is used to assist development, it should respect the project’s constraints rather than inventing new core behavior.
 
-## Suositus AI:lle
-
-Älä keksi uusia ydinkomponentteja ilman tarvetta.
-Jos jokin asia ei ole määritelty, tarkista ensin:
+Priority references:
 - `01_architecture/decisions_locked.md`
 - `00_scope/non_goals.md`
 - `04_solvers/solver_plugin_contract.md`
 - `05_ui/ui_master_spec.md`
 
-Jos ristiriitaa syntyy, nämä tiedostot ohittavat muut yleiset tulkinnat.
-00
+If there is a conflict, these files override broader interpretation.

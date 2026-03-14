@@ -1,0 +1,95 @@
+
+.results-container {
+    display: flex;
+    gap: 2rem;
+    padding: 2rem;
+}
+
+.results-main {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.results-sidebar {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.results-header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.results-header p {
+    font-size: 1.1rem;
+    color: #666;
+}
+
+.result-card {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.rc-header {
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.rc-content {
+    padding: 1.5rem;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.summary-grid div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.ai-panel-placeholder {
+    padding: 1.5rem;
+    text-align: center;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    color: #888;
+}
+
+.result-body-error {
+    color: #d9534f;
+    font-weight: bold;
+    text-align: center;
+    padding: 2rem;
+}
+
+/* Styles for result components, can be expanded */
+.result-body h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.result-body .result-summary {
+    font-style: italic;
+    color: #555;
+    margin-bottom: 1.5rem;
+}
+
+.result-body .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}

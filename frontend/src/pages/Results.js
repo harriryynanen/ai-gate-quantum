@@ -2,9 +2,9 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { solvers } from '../solverCatalog/solverDefinitions';
-import ClassicalResult from '../../components/results/ClassicalResult';
-import HybridResult from '../../components/results/HybridResult';
-import QuantumResult from '../../components/results/QuantumResult';
+import ClassicalResult from '../components/results/ClassicalResult';
+import HybridResult from '../components/results/HybridResult';
+import QuantumResult from '../components/results/QuantumResult';
 import './Results.css';
 
 const Results = () => {
