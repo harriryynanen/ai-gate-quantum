@@ -1,75 +1,71 @@
 
 import os
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask import Flask, jsonify, request
+import firebase_admin
+from firebase_admin import credentials, firestore
+import google.generativeai as genai
 
-# Import the centralized solver registry
-from backend.solvers.registry import registry
-# Import the new recommendation engine
-from backend.recommendation_engine import recommend_solvers
+# --- Alustus ----------------------------------------------------------------
+
+# Alustetaan Firebase Admin SDK
+cred = credentials.ApplicationDefault()
+firebase_admin.initialize_app(cred)
+db = firestore.client()
+
+# Alustetaan Gemini AI (turvallisesti)
+api_key = os.getenv("GEMINI_API_KEY")
+model = None
+if api_key:
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-pro')
+else:
+    print("VAROITUS: GEMINI_API_KEY -ympäristömuuttujaa ei löydy. Suoritetaan AI-mallia mock-tilassa.")
 
 app = Flask(__name__)
-CORS(app) # Enable CORS for local dev
 
-@app.route('/', methods=['GET'])
-def health_check():
-    """Health check endpoint to confirm the service is running."""
-    return jsonify({"status": "healthy", "service": "solver-service"}), 200
+# --- API-reitit -------------------------------------------------------------
 
-@app.route('/solvers', methods=['GET'])
-def list_available_solvers():
-    """Endpoint to get the metadata of all available solvers."""
-    return jsonify({"solvers": registry.list_solvers()})
-
-@app.route('/recommend_solvers', methods=['POST'])
-def handle_recommend_solvers():
-    """API endpoint to get solver recommendations based on a problem profile."""
-    problem_profile = request.get_json()
-
-    if not problem_profile:
-        return jsonify({"error": "Request body must be a valid JSON problem profile."}), 400
-
+@app.route('/jobs', methods=['GET'])
+def get_jobs():
+    """Hakee kaikki ajot 'jobs'-kokoelmasta Firestoresta."""
     try:
-        recommendation = recommend_solvers(problem_profile)
-        return jsonify(recommendation), 200
+        jobs_ref = db.collection(u'jobs').stream()
+        jobs = []
+        for job in jobs_ref:
+            job_data = job.to_dict()
+            job_data['id'] = job.id
+            jobs.append(job_data)
+        return jsonify(jobs)
     except Exception as e:
-        app.logger.error(f"Error in recommendation engine: {str(e)}")
-        return jsonify({"error": "An internal error occurred during recommendation."}), 500
+        print(f"Virhe haettaessa ajoja: {e}")
+        return jsonify({"error": "Tietokantahaku epäonnistui."}), 500
 
-@app.route('/run_solver', methods=['POST'])
-def handle_run_solver():
-    """API endpoint to run a specific solver by its ID."""
-    payload = request.get_json()
-
-    solver_id = payload.get('solver_id')
-    data = payload.get('data')
-    params = payload.get('params')
-
-    if not solver_id:
-        return jsonify({"error": "Missing required field: solver_id"}), 400
-
-    # Retrieve the solver from the registry
-    solver = registry.get_solver(solver_id)
-
-    if not solver:
-        return jsonify({"error": f"Solver '{solver_id}' not found"}), 404
-    
-    # Basic validation (can be expanded)
-    if solver.status != 'active-backend':
-        return jsonify({"error": f"Solver '{solver_id}' is not active and cannot be executed."}), 400
-
+@app.route('/chat', methods=['POST'])
+def chat_handler():
+    """Käsittelee chat-pyynnöt ja palauttaa Geminin tai mock-vastauksen."""
     try:
-        # Execute the solver's run method
-        result = solver.run(data, params)
-        return jsonify({"success": True, "result": result}), 200
+        data = request.get_json()
+        if not data or 'history' not in data:
+            return jsonify({"error": "Pyynnössä on oltava 'history'-kenttä."}), 400
+
+        # Jos Gemini-mallia ei ole alustettu (API-avain puuttuu), palauta mock-vastaus
+        if not model:
+            user_message = data['history'][-1]['parts'][0]['text']
+            mock_response = f"(Mock Response) Thank you for describing your goal: '{user_message}'. This is a simulated answer because the GEMINI_API_KEY is not configured. Please proceed."
+            return jsonify({"response": mock_response})
+
+        history = data['history']
+        chat_session = model.start_chat(history=history[:-1])
+        user_message = history[-1]['parts'][0]['text']
+        response = chat_session.send_message(user_message)
+
+        return jsonify({"response": response.text})
 
     except Exception as e:
-        app.logger.error(f"Error running solver '{solver_id}': {str(e)}")
-        # In a real app, you might want more detailed error logging
-        return jsonify({"error": "An internal error occurred while running the solver"}), 500
+        print(f"Virhe chat-käsittelyssä: {e}")
+        return jsonify({"error": f"AI-vastausta ei voitu luoda: {e}"}), 500
+
+# --- Ajaminen ---------------------------------------------------------------
 
 if __name__ == '__main__':
-    # Use port from environment variable, default to 8080
-    port = int(os.environ.get('PORT', 8080))
-    # Host '0.0.0.0' to be accessible from outside the container
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=8080)

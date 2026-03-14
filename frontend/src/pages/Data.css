@@ -1,0 +1,64 @@
+
+/* Data.css */
+
+.data-page {
+    padding: 24px 28px;
+}
+
+.dataset-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    background: var(--q-card);
+    border: 0.5px solid var(--q-border);
+    border-radius: var(--q-rl);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.12s;
+}
+
+.dataset-item:hover {
+    border-color: var(--q-border-s);
+}
+
+.ds-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--q-surface);
+    border-radius: var(--q-r);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+}
+
+.ds-info {
+    flex: 1;
+}
+
+.ds-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--q-text);
+    margin-bottom: 2px;
+}
+
+.ds-meta-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.ds-meta {
+    font-size: 11px;
+    color: var(--q-muted);
+}
+
+.ds-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Using ds-action styles defined in Dashboard.css - ensure it's loaded */

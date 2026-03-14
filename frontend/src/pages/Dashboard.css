@@ -1,15 +1,15 @@
 
+/* Dashboard.css */
+
 .dashboard-header {
-    padding: 0 0 16px 0;
+    padding: 24px 28px 16px;
     border-bottom: 0.5px solid var(--q-border);
     background: var(--q-card);
     flex-shrink: 0;
-    background: transparent;
-    border-bottom: none;
 }
 
 .dh-title {
-    font-family: var(--font-display);
+    font-family: var(--display);
     font-size: 20px;
     font-weight: 600;
     color: var(--q-text);
@@ -22,7 +22,7 @@
 }
 
 .dashboard-body {
-    padding-top: 20px;
+    padding: 20px 28px;
     flex: 1;
     overflow-y: auto;
 }
@@ -36,7 +36,7 @@
 
 .stat-card {
     background: var(--q-surface);
-    border-radius: var(--q-radius-md);
+    border-radius: var(--q-r);
     padding: 14px 16px;
 }
 
@@ -51,7 +51,7 @@
     font-size: 22px;
     font-weight: 500;
     color: var(--q-text);
-    font-family: var(--font-display);
+    font-family: var(--display);
 }
 
 .stat-sub {
@@ -80,12 +80,13 @@
     background: none;
     border: none;
     padding: 0;
+    text-decoration: none;
 }
 
 .job-table {
     width: 100%;
     border: 0.5px solid var(--q-border);
-    border-radius: var(--q-radius-lg);
+    border-radius: var(--q-rl);
     overflow: hidden;
     background: var(--q-card);
     margin-bottom: 24px;
@@ -115,6 +116,7 @@
     align-items: center;
     cursor: pointer;
     transition: background 0.1s;
+    text-decoration: none;
 }
 
 .jt-row:last-child {
@@ -143,7 +145,24 @@
 }
 
 .jt-mono {
-    font-family: var(--font-mono);
+    font-family: var(--mono);
     font-size: 11px;
     color: var(--q-muted);
+}
+
+.ds-action {
+    padding: 5px 10px;
+    font-size: 11px;
+    color: var(--q-muted);
+    background: var(--q-surface);
+    border: 0.5px solid var(--q-border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.1s;
+    font-family: var(--sans);
+}
+
+.ds-action:hover {
+    color: var(--q-text);
+    border-color: var(--q-border-s);
 }

@@ -1,0 +1,51 @@
+
+:root {
+    --q-bg: #F4F3EF;
+    --q-surface: #ECEAE4;
+    --q-card: #FFFFFF;
+    --q-border: rgba(0,0,0,0.10);
+    --q-border-s: rgba(0,0,0,0.18);
+    --q-text: #1A1A18;
+    --q-muted: #5A5A56;
+    --q-hint: #9A9A94;
+    --q-accent: #185FA5;
+    --q-accent-bg: #E6F1FB;
+    --q-accent-text: #0C447C;
+    --q-success: #1A7040;
+    --q-success-bg: #EAF3DE;
+    --q-warn: #8A5800;
+    --q-warn-bg: #FAEEDA;
+    --q-danger: #A32D2D;
+    --q-danger-bg: #FCEBEB;
+    --q-quantum: #534AB7;
+    --q-quantum-bg: #EEEDFE;
+    --q-r: 8px;
+    --q-rl: 12px;
+    --mono: 'IBM Plex Mono', monospace;
+    --display: 'Syne', sans-serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --q-bg: #1A1A18;
+      --q-surface: #242420;
+      --q-card: #2C2C28;
+      --q-border: rgba(255,255,255,0.10);
+      --q-border-s: rgba(255,255,255,0.18);
+      --q-text: #E8E6DE;
+      --q-muted: #A0A098;
+      --q-hint: #606058;
+      --q-accent: #378ADD;
+      --q-accent-bg: #0C2A42;
+      --q-accent-text: #85B7EB;
+      --q-success: #56A870;
+      --q-success-bg: #173404;
+      --q-warn: #D4A84A;
+      --q-warn-bg: #2A1E08;
+      --q-danger: #E24B4A;
+      --q-danger-bg: #2A0C0C;
+      --q-quantum: #AFA9EC;
+      --q-quantum-bg: #1E1A40;
+    }
+  }

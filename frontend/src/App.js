@@ -4,39 +4,69 @@ import { Routes, Route, NavLink } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import JobConfiguration from './pages/JobConfiguration';
 import SolverRegistry from './pages/SolverRegistry';
+import Data from './pages/Data';
+import JobHistory from './pages/JobHistory';
+import AIChatWorkspace from './pages/AIChatWorkspace';
 import Results from './pages/Results';
-import JobHistory from './pages/JobHistory'; // Assuming this page exists
-import AIChatWorkspace from './pages/AIChatWorkspace'; // Assuming this page exists
+
+import './styles/design_tokens.css';
 import './App.css';
 
 function App() {
   return (
-      <div className="app-container">
-        <nav className="sidebar">
-          <div className="sidebar-header">
-            <h2>QAI Platform</h2>
+    <div className="app">
+      <div className="topnav">
+        <div className="logo">
+          <div className="logo-dot"></div>
+          AI Gate Quantum
+        </div>
+        <div className="nav-sep"></div>
+        <div className="nav-tabs">
+          <NavLink to="/" className="nav-tab">Dashboard</NavLink>
+          <NavLink to="/ai-chat" className="nav-tab">AI Chat</NavLink>
+          <NavLink to="/solver-registry" className="nav-tab">Solvers</NavLink>
+          <NavLink to="/data" className="nav-tab">Data</NavLink>
+          <NavLink to="/job-history" className="nav-tab">History</NavLink>
+        </div>
+      </div>
+      <div className="main">
+        <div className="sidebar">
+          <div className="sidebar-section">
+            <NavLink to="/job-configuration" className="new-btn">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              New Analysis
+            </NavLink>
+            <div className="sidebar-label">In Progress</div>
+            <div className="session-item active">
+              <div className="si-name">Option pricing — Q4</div>
+              <div className="si-meta"><span className="badge badge-in-progress">Step 3/8</span><span className="si-date">Today</span></div>
+            </div>
+            <div className="session-item">
+              <div className="si-name">Credit risk portfolio</div>
+              <div className="si-meta"><span className="badge badge-in-progress">Step 2/8</span><span className="si-date">Yesterday</span></div>
+            </div>
+            <div className="sidebar-divider"></div>
+            <div className="sidebar-label">Completed</div>
+            <div className="session-item">
+              <div className="si-name">Insurance loss sim</div>
+              <div className="si-meta"><span className="badge badge-complete">Done</span><span className="si-date">3 days ago</span></div>
+            </div>
           </div>
-          <ul>
-            <li><NavLink to="/" end><i className="fas fa-tachometer-alt"></i> Dashboard</NavLink></li>
-            <li><NavLink to="/job-configuration"><i className="fas fa-play-circle"></i> New Job</NavLink></li>
-            <li><NavLink to="/solver-registry"><i className="fas fa-cogs"></i> Solver Registry</NavLink></li>
-            <li><NavLink to="/job-history"><i className="fas fa-history"></i> Job History</NavLink></li>
-            <li><NavLink to="/ai-chat"><i className="fas fa-robot"></i> AI Chat</NavLink></li>
-          </ul>
-        </nav>
-        <main className="main-content">
+        </div>
+        <div className="content">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/job-configuration" element={<JobConfiguration />} />
+            <Route path="/job-configuration/:jobId" element={<JobConfiguration />} />
             <Route path="/solver-registry" element={<SolverRegistry />} />
-            <Route path="/results" element={<Results />} />
-             {/* The following are placeholders for routing */}
+            <Route path="/data" element={<Data />} />
             <Route path="/job-history" element={<JobHistory />} />
             <Route path="/ai-chat" element={<AIChatWorkspace />} />
-             <Route path="/results/:jobId" element={<Results />} />
+            <Route path="/results/:jobId" element={<Results />} />
           </Routes>
-        </main>
+        </div>
       </div>
+    </div>
   );
 }
 
